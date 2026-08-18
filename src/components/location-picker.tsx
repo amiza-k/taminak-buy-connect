@@ -46,7 +46,7 @@ export function LocationPicker({ className }: { className?: string }) {
         <div className="space-y-2">
           <Label>استان</Label>
           <Select
-            value={province ?? undefined}
+            {...(province ? { value: province } : {})}
             onValueChange={(value) => setLocation({ province: value, city: null })}
           >
             <SelectTrigger className="w-full">
@@ -65,7 +65,7 @@ export function LocationPicker({ className }: { className?: string }) {
         <div className="space-y-2">
           <Label>شهر</Label>
           <Select
-            value={city ?? undefined}
+            {...(city ? { value: city } : {})}
             disabled={!province}
             onValueChange={(value) => setLocation({ province, city: value })}
           >
