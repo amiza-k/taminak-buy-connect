@@ -1,0 +1,1 @@
+CREATE POLICY organizations_public_supplier_read ON public.organizations FOR SELECT TO anon USING (type = 'supplier');
