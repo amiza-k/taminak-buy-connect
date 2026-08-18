@@ -53,9 +53,9 @@ function OnboardingPage() {
       const { data, error } = await supabase.rpc("create_organization_with_owner", {
         p_name: name,
         p_type: "restaurant",
-        p_phone: phone || undefined,
-        p_email: email || undefined,
-        p_address: address || undefined,
+        ...(phone ? { p_phone: phone } : {}),
+        ...(email ? { p_email: email } : {}),
+        ...(address ? { p_address: address } : {}),
       });
       if (error) throw error;
       return data;
