@@ -168,9 +168,7 @@ export function AddToCartButton({
   if (!user) {
     return (
       <Button size="sm" className={className} asChild>
-        <Link to="/login" search={{ redirect: undefined }}>
-          افزودن به سبد
-        </Link>
+        <Link to="/login">افزودن به سبد</Link>
       </Button>
     );
   }

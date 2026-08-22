@@ -13,9 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as BecomeSupplierRouteImport } from './routes/become-supplier'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as ProductsRouteImport } from './routes/products'
 import { Route as SignupRouteImport } from './routes/signup'
-import { Route as SuppliersRouteImport } from './routes/suppliers'
 import { Route as AuthenticatedCartRouteImport } from './routes/_authenticated/cart'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
@@ -39,19 +37,9 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProductsRoute = ProductsRouteImport.update({
-  id: '/products',
-  path: '/products',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SuppliersRoute = SuppliersRouteImport.update({
-  id: '/suppliers',
-  path: '/suppliers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedCartRoute = AuthenticatedCartRouteImport.update({
@@ -74,9 +62,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/become-supplier': typeof BecomeSupplierRoute
   '/login': typeof LoginRoute
-  '/products': typeof ProductsRoute
   '/signup': typeof SignupRoute
-  '/suppliers': typeof SuppliersRoute
   '/cart': typeof AuthenticatedCartRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/orders': typeof AuthenticatedOrdersRoute
@@ -85,9 +71,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/become-supplier': typeof BecomeSupplierRoute
   '/login': typeof LoginRoute
-  '/products': typeof ProductsRoute
   '/signup': typeof SignupRoute
-  '/suppliers': typeof SuppliersRoute
   '/cart': typeof AuthenticatedCartRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/orders': typeof AuthenticatedOrdersRoute
@@ -98,9 +82,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/become-supplier': typeof BecomeSupplierRoute
   '/login': typeof LoginRoute
-  '/products': typeof ProductsRoute
   '/signup': typeof SignupRoute
-  '/suppliers': typeof SuppliersRoute
   '/_authenticated/cart': typeof AuthenticatedCartRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/orders': typeof AuthenticatedOrdersRoute
@@ -111,9 +93,7 @@ export interface FileRouteTypes {
     | '/'
     | '/become-supplier'
     | '/login'
-    | '/products'
     | '/signup'
-    | '/suppliers'
     | '/cart'
     | '/onboarding'
     | '/orders'
@@ -122,9 +102,7 @@ export interface FileRouteTypes {
     | '/'
     | '/become-supplier'
     | '/login'
-    | '/products'
     | '/signup'
-    | '/suppliers'
     | '/cart'
     | '/onboarding'
     | '/orders'
@@ -134,9 +112,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/become-supplier'
     | '/login'
-    | '/products'
     | '/signup'
-    | '/suppliers'
     | '/_authenticated/cart'
     | '/_authenticated/onboarding'
     | '/_authenticated/orders'
@@ -147,9 +123,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   BecomeSupplierRoute: typeof BecomeSupplierRoute
   LoginRoute: typeof LoginRoute
-  ProductsRoute: typeof ProductsRoute
   SignupRoute: typeof SignupRoute
-  SuppliersRoute: typeof SuppliersRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -182,25 +156,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/products': {
-      id: '/products'
-      path: '/products'
-      fullPath: '/products'
-      preLoaderRoute: typeof ProductsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/signup': {
       id: '/signup'
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/suppliers': {
-      id: '/suppliers'
-      path: '/suppliers'
-      fullPath: '/suppliers'
-      preLoaderRoute: typeof SuppliersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/cart': {
@@ -247,9 +207,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   BecomeSupplierRoute: BecomeSupplierRoute,
   LoginRoute: LoginRoute,
-  ProductsRoute: ProductsRoute,
   SignupRoute: SignupRoute,
-  SuppliersRoute: SuppliersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
