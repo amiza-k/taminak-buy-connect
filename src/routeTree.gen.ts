@@ -13,12 +13,12 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as BecomeSupplierRouteImport } from './routes/become-supplier'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as ProductsRouteImport } from './routes/products'
 import { Route as SignupRouteImport } from './routes/signup'
-import { Route as SuppliersRouteImport } from './routes/suppliers'
 import { Route as AuthenticatedCartRouteImport } from './routes/_authenticated/cart'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
+import { Route as ProductsIndexRouteImport } from './routes/products/index'
+import { Route as ProductsProductIdRouteImport } from './routes/products/$productId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -39,19 +39,9 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProductsRoute = ProductsRouteImport.update({
-  id: '/products',
-  path: '/products',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SuppliersRoute = SuppliersRouteImport.update({
-  id: '/suppliers',
-  path: '/suppliers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedCartRoute = AuthenticatedCartRouteImport.update({
@@ -69,28 +59,38 @@ const AuthenticatedOrdersRoute = AuthenticatedOrdersRouteImport.update({
   path: '/orders',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ProductsIndexRoute = ProductsIndexRouteImport.update({
+  id: '/products/',
+  path: '/products/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductsProductIdRoute = ProductsProductIdRouteImport.update({
+  id: '/products/$productId',
+  path: '/products/$productId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/become-supplier': typeof BecomeSupplierRoute
   '/login': typeof LoginRoute
-  '/products': typeof ProductsRoute
   '/signup': typeof SignupRoute
-  '/suppliers': typeof SuppliersRoute
   '/cart': typeof AuthenticatedCartRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/orders': typeof AuthenticatedOrdersRoute
+  '/products/$productId': typeof ProductsProductIdRoute
+  '/products/': typeof ProductsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/become-supplier': typeof BecomeSupplierRoute
   '/login': typeof LoginRoute
-  '/products': typeof ProductsRoute
   '/signup': typeof SignupRoute
-  '/suppliers': typeof SuppliersRoute
   '/cart': typeof AuthenticatedCartRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/orders': typeof AuthenticatedOrdersRoute
+  '/products/$productId': typeof ProductsProductIdRoute
+  '/products': typeof ProductsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -98,12 +98,12 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/become-supplier': typeof BecomeSupplierRoute
   '/login': typeof LoginRoute
-  '/products': typeof ProductsRoute
   '/signup': typeof SignupRoute
-  '/suppliers': typeof SuppliersRoute
   '/_authenticated/cart': typeof AuthenticatedCartRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/orders': typeof AuthenticatedOrdersRoute
+  '/products/$productId': typeof ProductsProductIdRoute
+  '/products/': typeof ProductsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -111,35 +111,35 @@ export interface FileRouteTypes {
     | '/'
     | '/become-supplier'
     | '/login'
-    | '/products'
     | '/signup'
-    | '/suppliers'
     | '/cart'
     | '/onboarding'
     | '/orders'
+    | '/products/$productId'
+    | '/products/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/become-supplier'
     | '/login'
-    | '/products'
     | '/signup'
-    | '/suppliers'
     | '/cart'
     | '/onboarding'
     | '/orders'
+    | '/products/$productId'
+    | '/products'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/become-supplier'
     | '/login'
-    | '/products'
     | '/signup'
-    | '/suppliers'
     | '/_authenticated/cart'
     | '/_authenticated/onboarding'
     | '/_authenticated/orders'
+    | '/products/$productId'
+    | '/products/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -147,9 +147,9 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   BecomeSupplierRoute: typeof BecomeSupplierRoute
   LoginRoute: typeof LoginRoute
-  ProductsRoute: typeof ProductsRoute
   SignupRoute: typeof SignupRoute
-  SuppliersRoute: typeof SuppliersRoute
+  ProductsProductIdRoute: typeof ProductsProductIdRoute
+  ProductsIndexRoute: typeof ProductsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -182,25 +182,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/products': {
-      id: '/products'
-      path: '/products'
-      fullPath: '/products'
-      preLoaderRoute: typeof ProductsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/signup': {
       id: '/signup'
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/suppliers': {
-      id: '/suppliers'
-      path: '/suppliers'
-      fullPath: '/suppliers'
-      preLoaderRoute: typeof SuppliersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/cart': {
@@ -223,6 +209,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/orders'
       preLoaderRoute: typeof AuthenticatedOrdersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/products/': {
+      id: '/products/'
+      path: '/products'
+      fullPath: '/products/'
+      preLoaderRoute: typeof ProductsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/products/$productId': {
+      id: '/products/$productId'
+      path: '/products/$productId'
+      fullPath: '/products/$productId'
+      preLoaderRoute: typeof ProductsProductIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -247,9 +247,9 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   BecomeSupplierRoute: BecomeSupplierRoute,
   LoginRoute: LoginRoute,
-  ProductsRoute: ProductsRoute,
   SignupRoute: SignupRoute,
-  SuppliersRoute: SuppliersRoute,
+  ProductsProductIdRoute: ProductsProductIdRoute,
+  ProductsIndexRoute: ProductsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
