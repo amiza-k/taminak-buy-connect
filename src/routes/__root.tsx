@@ -146,6 +146,8 @@ function RootComponent() {
               <Outlet />
             </main>
             <SiteFooter />
+            <MobileNav />
+            <div className="h-14 md:hidden" />
           </div>
           <Toaster position="top-center" dir="rtl" />
         </LocationProvider>

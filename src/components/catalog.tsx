@@ -143,8 +143,8 @@ export function SupplierCard({ supplier }: { supplier: SupplierSummary }) {
 }
 
 /**
- * Phase 2: prepares the cart flow only — routes the buyer to the auth/onboarding
- * step they are missing. The real cart lives in the carts/cart_items tables (phase 3).
+ * Adds a specific supplier offer to the buyer organization's active cart
+ * (carts / cart_items). Routes to login or onboarding when the buyer is not ready.
  */
 export function AddToCartButton({
   offer,
@@ -154,8 +154,8 @@ export function AddToCartButton({
   className?: string;
 }) {
   const { user, loading } = useAuth();
-  const { data: memberships, isPending } = useMyMemberships();
-  const buyerOrg = (memberships ?? []).find((m) => m.organizations?.type === "restaurant");
+  const { organization, isPending } = useBuyerOrganization();
+  const { addItem } = useCartMutations();
 
   if (!offer.is_available) {
     return (
@@ -173,7 +173,7 @@ export function AddToCartButton({
     );
   }
 
-  if (!loading && !isPending && !buyerOrg) {
+  if (!loading && !isPending && !organization) {
     return (
       <Button size="sm" className={className} asChild>
         <Link to="/onboarding">ثبت کسب‌وکار برای خرید</Link>
@@ -185,7 +185,16 @@ export function AddToCartButton({
     <Button
       size="sm"
       className={className}
-      onClick={() => toast.info("سبد خرید در مرحله بعد فعال می‌شود.")}
+      disabled={addItem.isPending || isPending}
+      onClick={() =>
+        addItem.mutate(
+          { supplierProductId: offer.id, userId: user.id },
+          {
+            onSuccess: () => toast.success("به سبد خرید اضافه شد."),
+            onError: () => toast.error("افزودن به سبد ناموفق بود."),
+          },
+        )
+      }
     >
       افزودن به سبد
     </Button>
