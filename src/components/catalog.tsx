@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatNumber, formatToman, toFaDigits } from "@/lib/format";
 import { lowestAvailablePrice, type Offer, type ProductWithOffers, type SupplierSummary } from "@/lib/catalog";
 import { useAuth } from "@/hooks/use-auth";
-import { useMyMemberships } from "@/hooks/use-organizations";
+import { useBuyerOrganization, useCartMutations } from "@/lib/cart";
 
 export function LoadingState({ label = "در حال بارگذاری..." }: { label?: string }) {
   return (
