@@ -104,8 +104,9 @@ export type SupplierSummary = SupplierOrg & {
 export async function fetchSuppliers(): Promise<SupplierSummary[]> {
   const { data, error } = await supabase
     .from("organizations")
-    .select(`${ORG_FIELDS}, supplier_products ( id, is_available ), reviews ( rating )`)
-    .eq("type", "supplier")
+    .select(
+      `${ORG_FIELDS}, supplier_products ( id, is_available ), reviews!reviews_supplier_organization_id_fkey ( rating )`,
+    )    .eq("type", "supplier")
     .order("name");
   if (error) throw error;
 
@@ -140,7 +141,7 @@ export async function fetchSupplier(supplierId: string): Promise<SupplierDetail 
   const { data, error } = await supabase
     .from("organizations")
     .select(
-      `${ORG_FIELDS}, supplier_products ( id, unit_price, is_available, sku, supplier_organization_id, products ( ${PRODUCT_FIELDS} ) ), reviews ( id, rating, comment, created_at )`,
+      `${ORG_FIELDS}, supplier_products ( id, unit_price, is_available, sku, supplier_organization_id, products ( ${PRODUCT_FIELDS} ) ), reviews!reviews_supplier_organization_id_fkey ( id, rating, comment, created_at )`,
     )
     .eq("id", supplierId)
     .eq("type", "supplier")
