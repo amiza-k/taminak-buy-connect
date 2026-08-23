@@ -15,6 +15,7 @@ import { AuthProvider } from "@/hooks/use-auth";
 import { LocationProvider } from "@/hooks/use-location";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
+import { MobileNav } from "@/components/layout/mobile-nav";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -145,6 +146,8 @@ function RootComponent() {
               <Outlet />
             </main>
             <SiteFooter />
+            <MobileNav />
+            <div className="h-14 md:hidden" />
           </div>
           <Toaster position="top-center" dir="rtl" />
         </LocationProvider>
