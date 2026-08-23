@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/sheet";
 import { LocationPicker } from "@/components/location-picker";
 import { useAuth } from "@/hooks/use-auth";
+import { useCartCount } from "@/lib/cart";
+import { formatNumber } from "@/lib/format";
 
 const NAV = [
   { to: "/products", label: "محصولات" },
@@ -39,6 +41,7 @@ function BrandMark() {
 
 export function SiteHeader() {
   const { user, signOut } = useAuth();
+  const cartCount = useCartCount();
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
@@ -85,9 +88,14 @@ export function SiteHeader() {
         <div className="ms-auto flex items-center gap-2">
           <LocationPicker className="hidden sm:inline-flex" />
 
-          <Button variant="ghost" size="icon" asChild aria-label="سبد خرید">
+          <Button variant="ghost" size="icon" asChild aria-label="سبد خرید" className="relative">
             <Link to="/cart">
               <ShoppingCart className="size-5" />
+              {cartCount > 0 ? (
+                <span className="absolute -end-1 -top-1 grid min-w-4 place-items-center rounded-full bg-primary px-1 text-[10px] leading-4 text-primary-foreground">
+                  {formatNumber(cartCount)}
+                </span>
+              ) : null}
             </Link>
           </Button>
 
