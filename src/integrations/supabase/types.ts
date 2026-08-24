@@ -631,6 +631,19 @@ export type Database = {
         Args: { p_application_id: string }
         Returns: string
       }
+      checkout_cart: {
+        Args: {
+          p_cart_id: string
+          p_contact_phone: string
+          p_delivery_address: string
+          p_note?: string
+        }
+        Returns: {
+          order_id: string
+          supplier_organization_id: string
+          total: number
+        }[]
+      }
       create_organization_with_owner: {
         Args: {
           p_address?: string

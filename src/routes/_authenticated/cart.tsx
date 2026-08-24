@@ -185,12 +185,9 @@ function CartPage() {
                   {formatToman(totals.subtotal)}
                 </span>
               </div>
-              <Button className="w-full" disabled>
-                ثبت سفارش (به‌زودی)
+              <Button className="w-full" asChild>
+                <Link to="/checkout">ثبت سفارش</Link>
               </Button>
-              <p className="text-xs text-muted-foreground">
-                ثبت سفارش برای هر تأمین‌کننده در مرحله بعد فعال می‌شود.
-              </p>
             </aside>
           </div>
         )}

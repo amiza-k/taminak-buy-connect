@@ -80,9 +80,10 @@ function Index() {
             <form
               className="mt-8 flex flex-col gap-2 rounded-xl bg-card p-2 sm:flex-row"
               onSubmit={(event) => {
-                event.preventDefault();
-                navigate({ to: "/products" });
-              }}
+              event.preventDefault();
+              const term = query.trim();
+              navigate({ to: "/products", search: term ? { q: term } : {} });
+            }}
             >
               <div className="flex flex-1 items-center gap-2 px-2">
                 <Search className="size-4 shrink-0 text-muted-foreground" />

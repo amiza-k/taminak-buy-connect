@@ -1,0 +1,1 @@
+revoke execute on function public.checkout_cart(uuid, text, text, text) from anon;
