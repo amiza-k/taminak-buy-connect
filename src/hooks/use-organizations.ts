@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -52,4 +53,16 @@ export function useMyProfile() {
       return data;
     },
   });
+}
+
+/** The supplier organization the current user belongs to, if any. */
+export function useSupplierOrganization() {
+  const { data: memberships, isPending } = useMyMemberships();
+  const organization = useMemo(
+    () =>
+      (memberships ?? []).find((m) => m.organizations?.type === "supplier")?.organizations ??
+      null,
+    [memberships],
+  );
+  return { organization, isPending };
 }

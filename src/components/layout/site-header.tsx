@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { LogOut, Menu, ShoppingCart, User } from "lucide-react";
+import { useSupplierOrganization } from "@/hooks/use-organizations";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -42,6 +43,7 @@ function BrandMark() {
 export function SiteHeader() {
   const { user, signOut } = useAuth();
   const cartCount = useCartCount();
+  const { organization: supplierOrg } = useSupplierOrganization();
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
@@ -114,9 +116,14 @@ export function SiteHeader() {
                 <DropdownMenuItem asChild>
                   <Link to="/orders">سفارش‌های من</Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
+               <DropdownMenuItem asChild>
                   <Link to="/onboarding">کسب‌وکار من</Link>
                 </DropdownMenuItem>
+                {supplierOrg ? (
+                  <DropdownMenuItem asChild>
+                    <Link to="/supplier/orders">سفارش‌های دریافتی</Link>
+                  </DropdownMenuItem>
+                ) : null}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onSelect={() => void signOut()}>
                   <LogOut className="size-4" />

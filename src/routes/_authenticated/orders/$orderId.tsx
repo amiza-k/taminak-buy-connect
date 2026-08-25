@@ -1,28 +1,38 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { MapPin, Phone } from "lucide-react";
+import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { PageShell } from "@/components/page-shell";
 import { EmptyState, ErrorState, LoadingState } from "@/components/catalog";
-import { orderQuery, ORDER_STATUS_LABELS } from "@/lib/orders";
+import { useSupplierOrganization } from "@/hooks/use-organizations";
+import {
+  supplierOrderQuery,
+  useUpdateOrderStatus,
+  ORDER_STATUS_LABELS,
+  SUPPLIER_STATUS_ACTIONS,
+} from "@/lib/orders";
 import { formatDate, formatNumber, formatToman } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/orders/$orderId")({
   head: () => ({
     meta: [
-      { title: "جزئیات سفارش | تأمینک" },
-      { name: "description", content: "وضعیت، اقلام و مبلغ سفارش ثبت‌شده." },
+      { title: "جزئیات سفارش دریافتی | تأمینک" },
+      { name: "description", content: "بررسی و تغییر وضعیت سفارش دریافتی." },
     ],
   }),
-  component: OrderDetailPage,
+  component: SupplierOrderDetailPage,
 });
 
-function OrderDetailPage() {
+function SupplierOrderDetailPage() {
   const { orderId } = Route.useParams();
-  const query = useQuery(orderQuery(orderId));
+  const { organization, isPending: orgPending } = useSupplierOrganization();
+  const query = useQuery(supplierOrderQuery(orderId));
+  const updateStatus = useUpdateOrderStatus();
 
-  if (query.isPending) {
+  if (orgPending || query.isPending) {
     return (
       <PageShell title="سفارش">
         <LoadingState />
@@ -36,8 +46,14 @@ function OrderDetailPage() {
       </PageShell>
     );
   }
+
   const order = query.data;
-  if (!order) {
+
+  // Defense in depth: even though RLS already scopes which rows are
+  // readable, a buyer could open this supplier-only URL for their own order.
+  // Only show it as a supplier order if it actually belongs to the
+  // authenticated user's supplier organization.
+  if (!order || !organization || order.supplier_organization_id !== organization.id) {
     return (
       <PageShell title="سفارش">
         <EmptyState label="سفارشی پیدا نشد." />
@@ -45,8 +61,21 @@ function OrderDetailPage() {
     );
   }
 
+  const actions = SUPPLIER_STATUS_ACTIONS[order.status] ?? [];
+
+  function handleTransition(nextStatus: string) {
+    if (!organization) return;
+    updateStatus.mutate(
+      { orderId: order!.id, status: nextStatus, supplierOrganizationId: organization.id },
+      {
+        onSuccess: () => toast.success("وضعیت سفارش به‌روزرسانی شد."),
+        onError: () => toast.error("تغییر وضعیت سفارش انجام نشد. لطفاً دوباره تلاش کنید."),
+      },
+    );
+  }
+
   return (
-    <PageShell title={`سفارش از ${order.supplierName}`} description={formatDate(order.created_at)}>
+    <PageShell title={`سفارش از ${order.buyerName}`} description={formatDate(order.created_at)}>
       <div className="grid gap-6 pb-24 md:pb-0 lg:grid-cols-[1fr_320px]">
         <div className="space-y-4">
           <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
@@ -68,7 +97,7 @@ function OrderDetailPage() {
 
           {order.note ? (
             <div className="rounded-xl border border-border bg-card p-4 shadow-card">
-              <p className="text-sm font-semibold">توضیحات سفارش</p>
+              <p className="text-sm font-semibold">توضیحات خریدار</p>
               <p className="mt-1 text-sm text-muted-foreground">{order.note}</p>
             </div>
           ) : null}
@@ -92,6 +121,22 @@ function OrderDetailPage() {
             <span>مبلغ کل:</span>
             <span className="text-lg font-bold text-primary">{formatToman(order.total)}</span>
           </div>
+
+          {actions.length > 0 ? (
+            <div className="space-y-2 border-t border-border pt-3">
+              {actions.map((action) => (
+                <Button
+                  key={action.status}
+                  className="w-full"
+                  variant={action.status === "rejected" ? "outline" : "default"}
+                  disabled={updateStatus.isPending}
+                  onClick={() => handleTransition(action.status)}
+                >
+                  {action.label}
+                </Button>
+              ))}
+            </div>
+          ) : null}
         </aside>
       </div>
     </PageShell>
