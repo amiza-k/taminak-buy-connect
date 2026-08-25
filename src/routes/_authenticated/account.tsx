@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Building2, ClipboardList, MapPin, Store, User } from "lucide-react";
+import { Building2, ClipboardList, MapPin, Shield, Store, User } from "lucide-react";
 
 import { PageShell } from "@/components/page-shell";
 import { LocationPicker } from "@/components/location-picker";
 import { useAuth } from "@/hooks/use-auth";
 import { useSupplierMembership } from "@/lib/supplier";
+import { usePlatformAdmin } from "@/lib/admin";
 
 export const Route = createFileRoute("/_authenticated/account")({
   head: () => ({
@@ -28,7 +29,8 @@ function AccountRow({ to, icon: Icon, label }: { to: string; icon: typeof User; 
 function AccountPage() {
   const { user } = useAuth();
   const { organization, isApproved } = useSupplierMembership();
-  
+  const { isAdmin } = usePlatformAdmin();
+
   return (
     <PageShell title="حساب من" description={user?.email ?? undefined}>
       <div className="grid gap-6 lg:grid-cols-2">
@@ -63,6 +65,15 @@ function AccountPage() {
             </div>
           )}
         </section>
+
+        {isAdmin ? (
+          <section className="space-y-3 lg:col-span-2">
+            <h2 className="text-base font-semibold">مدیریت پلتفرم</h2>
+            <div className="rounded-xl border border-border bg-card p-2 shadow-card">
+              <AccountRow to="/admin" icon={Shield} label="پنل مدیریت" />
+            </div>
+          </section>
+        ) : null}
       </div>
     </PageShell>
   );

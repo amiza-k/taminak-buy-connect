@@ -15,6 +15,7 @@ import { Route as BecomeSupplierRouteImport } from './routes/become-supplier'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
+import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
 import { Route as AuthenticatedCartRouteImport } from './routes/_authenticated/cart'
 import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
@@ -23,10 +24,16 @@ import { Route as ProductsIndexRouteImport } from './routes/products/index'
 import { Route as ProductsProductIdRouteImport } from './routes/products/$productId'
 import { Route as SuppliersIndexRouteImport } from './routes/suppliers/index'
 import { Route as SuppliersSupplierIdRouteImport } from './routes/suppliers/$supplierId'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as AuthenticatedOrdersIndexRouteImport } from './routes/_authenticated/orders/index'
+import { Route as AuthenticatedOrdersOrderIdRouteImport } from './routes/_authenticated/orders/$orderId'
 import { Route as AuthenticatedSupplierIndexRouteImport } from './routes/_authenticated/supplier/index'
 import { Route as AuthenticatedSupplierProfileRouteImport } from './routes/_authenticated/supplier/profile'
 import { Route as AuthenticatedSupplierSubmissionsRouteImport } from './routes/_authenticated/supplier/submissions'
+import { Route as AuthenticatedAdminProductSubmissionsIndexRouteImport } from './routes/_authenticated/admin/product-submissions/index'
+import { Route as AuthenticatedAdminProductSubmissionsSubmissionIdRouteImport } from './routes/_authenticated/admin/product-submissions/$submissionId'
+import { Route as AuthenticatedAdminSupplierApplicationsIndexRouteImport } from './routes/_authenticated/admin/supplier-applications/index'
+import { Route as AuthenticatedAdminSupplierApplicationsApplicationIdRouteImport } from './routes/_authenticated/admin/supplier-applications/$applicationId'
 import { Route as AuthenticatedSupplierOrdersIndexRouteImport } from './routes/_authenticated/supplier/orders/index'
 import { Route as AuthenticatedSupplierOrdersOrderIdRouteImport } from './routes/_authenticated/supplier/orders/$orderId'
 import { Route as AuthenticatedSupplierProductsIndexRouteImport } from './routes/_authenticated/supplier/products/index'
@@ -59,6 +66,11 @@ const SignupRoute = SignupRouteImport.update({
 const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
   id: '/account',
   path: '/account',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminRouteRoute = AuthenticatedAdminRouteRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedCartRoute = AuthenticatedCartRouteImport.update({
@@ -102,10 +114,21 @@ const SuppliersSupplierIdRoute = SuppliersSupplierIdRouteImport.update({
   path: '/suppliers/$supplierId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAdminRouteRoute,
+} as any)
 const AuthenticatedOrdersIndexRoute =
   AuthenticatedOrdersIndexRouteImport.update({
     id: '/orders/',
     path: '/orders/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedOrdersOrderIdRoute =
+  AuthenticatedOrdersOrderIdRouteImport.update({
+    id: '/orders/$orderId',
+    path: '/orders/$orderId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedSupplierIndexRoute =
@@ -125,6 +148,30 @@ const AuthenticatedSupplierSubmissionsRoute =
     id: '/submissions',
     path: '/submissions',
     getParentRoute: () => AuthenticatedSupplierRouteRoute,
+  } as any)
+const AuthenticatedAdminProductSubmissionsIndexRoute =
+  AuthenticatedAdminProductSubmissionsIndexRouteImport.update({
+    id: '/product-submissions/',
+    path: '/product-submissions/',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminProductSubmissionsSubmissionIdRoute =
+  AuthenticatedAdminProductSubmissionsSubmissionIdRouteImport.update({
+    id: '/product-submissions/$submissionId',
+    path: '/product-submissions/$submissionId',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminSupplierApplicationsIndexRoute =
+  AuthenticatedAdminSupplierApplicationsIndexRouteImport.update({
+    id: '/supplier-applications/',
+    path: '/supplier-applications/',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminSupplierApplicationsApplicationIdRoute =
+  AuthenticatedAdminSupplierApplicationsApplicationIdRouteImport.update({
+    id: '/supplier-applications/$applicationId',
+    path: '/supplier-applications/$applicationId',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
 const AuthenticatedSupplierOrdersIndexRoute =
   AuthenticatedSupplierOrdersIndexRouteImport.update({
@@ -156,6 +203,7 @@ export interface FileRoutesByFullPath {
   '/become-supplier': typeof BecomeSupplierRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/supplier': typeof AuthenticatedSupplierRouteRouteWithChildren
   '/account': typeof AuthenticatedAccountRoute
   '/cart': typeof AuthenticatedCartRoute
@@ -165,12 +213,18 @@ export interface FileRoutesByFullPath {
   '/suppliers/$supplierId': typeof SuppliersSupplierIdRoute
   '/products/': typeof ProductsIndexRoute
   '/suppliers/': typeof SuppliersIndexRoute
+  '/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
   '/supplier/profile': typeof AuthenticatedSupplierProfileRoute
   '/supplier/submissions': typeof AuthenticatedSupplierSubmissionsRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
   '/orders/': typeof AuthenticatedOrdersIndexRoute
   '/supplier/': typeof AuthenticatedSupplierIndexRoute
+  '/admin/product-submissions/$submissionId': typeof AuthenticatedAdminProductSubmissionsSubmissionIdRoute
+  '/admin/supplier-applications/$applicationId': typeof AuthenticatedAdminSupplierApplicationsApplicationIdRoute
   '/supplier/orders/$orderId': typeof AuthenticatedSupplierOrdersOrderIdRoute
   '/supplier/products/new': typeof AuthenticatedSupplierProductsNewRoute
+  '/admin/product-submissions/': typeof AuthenticatedAdminProductSubmissionsIndexRoute
+  '/admin/supplier-applications/': typeof AuthenticatedAdminSupplierApplicationsIndexRoute
   '/supplier/orders/': typeof AuthenticatedSupplierOrdersIndexRoute
   '/supplier/products/': typeof AuthenticatedSupplierProductsIndexRoute
 }
@@ -187,12 +241,18 @@ export interface FileRoutesByTo {
   '/suppliers/$supplierId': typeof SuppliersSupplierIdRoute
   '/products': typeof ProductsIndexRoute
   '/suppliers': typeof SuppliersIndexRoute
+  '/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
   '/supplier/profile': typeof AuthenticatedSupplierProfileRoute
   '/supplier/submissions': typeof AuthenticatedSupplierSubmissionsRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
   '/orders': typeof AuthenticatedOrdersIndexRoute
   '/supplier': typeof AuthenticatedSupplierIndexRoute
+  '/admin/product-submissions/$submissionId': typeof AuthenticatedAdminProductSubmissionsSubmissionIdRoute
+  '/admin/supplier-applications/$applicationId': typeof AuthenticatedAdminSupplierApplicationsApplicationIdRoute
   '/supplier/orders/$orderId': typeof AuthenticatedSupplierOrdersOrderIdRoute
   '/supplier/products/new': typeof AuthenticatedSupplierProductsNewRoute
+  '/admin/product-submissions': typeof AuthenticatedAdminProductSubmissionsIndexRoute
+  '/admin/supplier-applications': typeof AuthenticatedAdminSupplierApplicationsIndexRoute
   '/supplier/orders': typeof AuthenticatedSupplierOrdersIndexRoute
   '/supplier/products': typeof AuthenticatedSupplierProductsIndexRoute
 }
@@ -203,6 +263,7 @@ export interface FileRoutesById {
   '/become-supplier': typeof BecomeSupplierRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/_authenticated/supplier': typeof AuthenticatedSupplierRouteRouteWithChildren
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/cart': typeof AuthenticatedCartRoute
@@ -212,12 +273,18 @@ export interface FileRoutesById {
   '/suppliers/$supplierId': typeof SuppliersSupplierIdRoute
   '/products/': typeof ProductsIndexRoute
   '/suppliers/': typeof SuppliersIndexRoute
+  '/_authenticated/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
   '/_authenticated/supplier/profile': typeof AuthenticatedSupplierProfileRoute
   '/_authenticated/supplier/submissions': typeof AuthenticatedSupplierSubmissionsRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/orders/': typeof AuthenticatedOrdersIndexRoute
   '/_authenticated/supplier/': typeof AuthenticatedSupplierIndexRoute
+  '/_authenticated/admin/product-submissions/$submissionId': typeof AuthenticatedAdminProductSubmissionsSubmissionIdRoute
+  '/_authenticated/admin/supplier-applications/$applicationId': typeof AuthenticatedAdminSupplierApplicationsApplicationIdRoute
   '/_authenticated/supplier/orders/$orderId': typeof AuthenticatedSupplierOrdersOrderIdRoute
   '/_authenticated/supplier/products/new': typeof AuthenticatedSupplierProductsNewRoute
+  '/_authenticated/admin/product-submissions/': typeof AuthenticatedAdminProductSubmissionsIndexRoute
+  '/_authenticated/admin/supplier-applications/': typeof AuthenticatedAdminSupplierApplicationsIndexRoute
   '/_authenticated/supplier/orders/': typeof AuthenticatedSupplierOrdersIndexRoute
   '/_authenticated/supplier/products/': typeof AuthenticatedSupplierProductsIndexRoute
 }
@@ -228,6 +295,7 @@ export interface FileRouteTypes {
     | '/become-supplier'
     | '/login'
     | '/signup'
+    | '/admin'
     | '/supplier'
     | '/account'
     | '/cart'
@@ -237,12 +305,18 @@ export interface FileRouteTypes {
     | '/suppliers/$supplierId'
     | '/products/'
     | '/suppliers/'
+    | '/orders/$orderId'
     | '/supplier/profile'
     | '/supplier/submissions'
+    | '/admin/'
     | '/orders/'
     | '/supplier/'
+    | '/admin/product-submissions/$submissionId'
+    | '/admin/supplier-applications/$applicationId'
     | '/supplier/orders/$orderId'
     | '/supplier/products/new'
+    | '/admin/product-submissions/'
+    | '/admin/supplier-applications/'
     | '/supplier/orders/'
     | '/supplier/products/'
   fileRoutesByTo: FileRoutesByTo
@@ -259,12 +333,18 @@ export interface FileRouteTypes {
     | '/suppliers/$supplierId'
     | '/products'
     | '/suppliers'
+    | '/orders/$orderId'
     | '/supplier/profile'
     | '/supplier/submissions'
+    | '/admin'
     | '/orders'
     | '/supplier'
+    | '/admin/product-submissions/$submissionId'
+    | '/admin/supplier-applications/$applicationId'
     | '/supplier/orders/$orderId'
     | '/supplier/products/new'
+    | '/admin/product-submissions'
+    | '/admin/supplier-applications'
     | '/supplier/orders'
     | '/supplier/products'
   id:
@@ -274,6 +354,7 @@ export interface FileRouteTypes {
     | '/become-supplier'
     | '/login'
     | '/signup'
+    | '/_authenticated/admin'
     | '/_authenticated/supplier'
     | '/_authenticated/account'
     | '/_authenticated/cart'
@@ -283,12 +364,18 @@ export interface FileRouteTypes {
     | '/suppliers/$supplierId'
     | '/products/'
     | '/suppliers/'
+    | '/_authenticated/orders/$orderId'
     | '/_authenticated/supplier/profile'
     | '/_authenticated/supplier/submissions'
+    | '/_authenticated/admin/'
     | '/_authenticated/orders/'
     | '/_authenticated/supplier/'
+    | '/_authenticated/admin/product-submissions/$submissionId'
+    | '/_authenticated/admin/supplier-applications/$applicationId'
     | '/_authenticated/supplier/orders/$orderId'
     | '/_authenticated/supplier/products/new'
+    | '/_authenticated/admin/product-submissions/'
+    | '/_authenticated/admin/supplier-applications/'
     | '/_authenticated/supplier/orders/'
     | '/_authenticated/supplier/products/'
   fileRoutesById: FileRoutesById
@@ -349,6 +436,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/cart': {
       id: '/_authenticated/cart'
       path: '/cart'
@@ -405,11 +499,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SuppliersSupplierIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/orders/': {
       id: '/_authenticated/orders/'
       path: '/orders'
       fullPath: '/orders/'
       preLoaderRoute: typeof AuthenticatedOrdersIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/orders/$orderId': {
+      id: '/_authenticated/orders/$orderId'
+      path: '/orders/$orderId'
+      fullPath: '/orders/$orderId'
+      preLoaderRoute: typeof AuthenticatedOrdersOrderIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/supplier/': {
@@ -432,6 +540,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/supplier/submissions'
       preLoaderRoute: typeof AuthenticatedSupplierSubmissionsRouteImport
       parentRoute: typeof AuthenticatedSupplierRouteRoute
+    }
+    '/_authenticated/admin/product-submissions/': {
+      id: '/_authenticated/admin/product-submissions/'
+      path: '/product-submissions'
+      fullPath: '/admin/product-submissions/'
+      preLoaderRoute: typeof AuthenticatedAdminProductSubmissionsIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/product-submissions/$submissionId': {
+      id: '/_authenticated/admin/product-submissions/$submissionId'
+      path: '/product-submissions/$submissionId'
+      fullPath: '/admin/product-submissions/$submissionId'
+      preLoaderRoute: typeof AuthenticatedAdminProductSubmissionsSubmissionIdRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/supplier-applications/': {
+      id: '/_authenticated/admin/supplier-applications/'
+      path: '/supplier-applications'
+      fullPath: '/admin/supplier-applications/'
+      preLoaderRoute: typeof AuthenticatedAdminSupplierApplicationsIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/supplier-applications/$applicationId': {
+      id: '/_authenticated/admin/supplier-applications/$applicationId'
+      path: '/supplier-applications/$applicationId'
+      fullPath: '/admin/supplier-applications/$applicationId'
+      preLoaderRoute: typeof AuthenticatedAdminSupplierApplicationsApplicationIdRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
     }
     '/_authenticated/supplier/orders/': {
       id: '/_authenticated/supplier/orders/'
@@ -463,6 +599,32 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface AuthenticatedAdminRouteRouteChildren {
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+  AuthenticatedAdminProductSubmissionsSubmissionIdRoute: typeof AuthenticatedAdminProductSubmissionsSubmissionIdRoute
+  AuthenticatedAdminSupplierApplicationsApplicationIdRoute: typeof AuthenticatedAdminSupplierApplicationsApplicationIdRoute
+  AuthenticatedAdminProductSubmissionsIndexRoute: typeof AuthenticatedAdminProductSubmissionsIndexRoute
+  AuthenticatedAdminSupplierApplicationsIndexRoute: typeof AuthenticatedAdminSupplierApplicationsIndexRoute
+}
+
+const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren =
+  {
+    AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+    AuthenticatedAdminProductSubmissionsSubmissionIdRoute:
+      AuthenticatedAdminProductSubmissionsSubmissionIdRoute,
+    AuthenticatedAdminSupplierApplicationsApplicationIdRoute:
+      AuthenticatedAdminSupplierApplicationsApplicationIdRoute,
+    AuthenticatedAdminProductSubmissionsIndexRoute:
+      AuthenticatedAdminProductSubmissionsIndexRoute,
+    AuthenticatedAdminSupplierApplicationsIndexRoute:
+      AuthenticatedAdminSupplierApplicationsIndexRoute,
+  }
+
+const AuthenticatedAdminRouteRouteWithChildren =
+  AuthenticatedAdminRouteRoute._addFileChildren(
+    AuthenticatedAdminRouteRouteChildren,
+  )
 
 interface AuthenticatedSupplierRouteRouteChildren {
   AuthenticatedSupplierProfileRoute: typeof AuthenticatedSupplierProfileRoute
@@ -496,20 +658,24 @@ const AuthenticatedSupplierRouteRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRouteRoute: typeof AuthenticatedAdminRouteRouteWithChildren
   AuthenticatedSupplierRouteRoute: typeof AuthenticatedSupplierRouteRouteWithChildren
   AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
   AuthenticatedCartRoute: typeof AuthenticatedCartRoute
   AuthenticatedCheckoutRoute: typeof AuthenticatedCheckoutRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
+  AuthenticatedOrdersOrderIdRoute: typeof AuthenticatedOrdersOrderIdRoute
   AuthenticatedOrdersIndexRoute: typeof AuthenticatedOrdersIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRouteRoute: AuthenticatedAdminRouteRouteWithChildren,
   AuthenticatedSupplierRouteRoute: AuthenticatedSupplierRouteRouteWithChildren,
   AuthenticatedAccountRoute: AuthenticatedAccountRoute,
   AuthenticatedCartRoute: AuthenticatedCartRoute,
   AuthenticatedCheckoutRoute: AuthenticatedCheckoutRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
+  AuthenticatedOrdersOrderIdRoute: AuthenticatedOrdersOrderIdRoute,
   AuthenticatedOrdersIndexRoute: AuthenticatedOrdersIndexRoute,
 }
 

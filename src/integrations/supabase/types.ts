@@ -10,7 +10,32 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.15"
+    PostgrestVersion: "14.17"
+  }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
@@ -623,6 +648,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_dashboard_counts: {
+        Args: never
+        Returns: {
+          active_products: number
+          approved_suppliers: number
+          pending_product_submissions: number
+          pending_supplier_applications: number
+          recent_orders_count: number
+        }[]
+      }
       approve_product_submission: {
         Args: { p_submission_id: string }
         Returns: string
@@ -667,6 +702,14 @@ export type Database = {
         Returns: boolean
       }
       is_platform_admin: { Args: never; Returns: boolean }
+      reject_product_submission: {
+        Args: { p_reason: string; p_submission_id: string }
+        Returns: undefined
+      }
+      reject_supplier_application: {
+        Args: { p_application_id: string; p_reason: string }
+        Returns: undefined
+      }
       update_order_status: {
         Args: { p_order_id: string; p_status: string }
         Returns: {
@@ -818,6 +861,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },
