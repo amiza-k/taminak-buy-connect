@@ -26,7 +26,6 @@ import { formatNumber } from "@/lib/format";
 const NAV = [
   { to: "/products", label: "محصولات" },
   { to: "/suppliers", label: "تأمین‌کننده‌ها" },
-  { to: "/become-supplier", label: "درخواست فروشندگی" },
 ] as const;
 
 function BrandMark() {
@@ -114,9 +113,12 @@ export function SiteHeader() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
+                  <Link to="/account">حساب من</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
                   <Link to="/orders">سفارش‌های من</Link>
                 </DropdownMenuItem>
-               <DropdownMenuItem asChild>
+                <DropdownMenuItem asChild>
                   <Link to="/onboarding">کسب‌وکار من</Link>
                 </DropdownMenuItem>
                 {supplierOrg ? (

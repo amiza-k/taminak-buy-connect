@@ -64,14 +64,18 @@ export function useSupplierMembership() {
       (memberships ?? []).find((m) => m.organizations?.type === "supplier") ?? null;
     const organization = membership?.organizations ?? null;
     const status = organization?.supplier_status ?? null;
-    const isApproved = Boolean(organization) && status !== "rejected" && status !== "pending";
-    return {
+const isApproved =
+  Boolean(organization) && status === "approved";
+      return {
       isPending,
       membership,
       organization,
       role: membership?.role ?? null,
       /** Only owner/manager may update organization rows under current RLS. */
-      canEditOrganization: membership?.role === "owner" || membership?.role === "manager",
+      canEditOrganization:
+        membership?.role === "owner" ||
+        membership?.role === "manager" ||
+        membership?.role === "supplier_admin",
       isApproved,
     };
   }, [memberships, isPending]);
@@ -283,3 +287,93 @@ export function useCreateSubmission(organizationId: string | null) {
     },
   });
 }
+
+/* -------------------------------------------------------------- */
+/* Supplier organization profile                                   */
+/* -------------------------------------------------------------- */
+
+export type SupplierOrganizationDetail = {
+  id: string;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  address: string | null;
+  province: string | null;
+  city: string | null;
+  supplier_status: string | null;
+};
+
+export function supplierOrgDetailKey(organizationId: string | null) {
+  return ["supplier-org-detail", organizationId] as const;
+}
+
+export const supplierOrgDetailQuery = (organizationId: string | null) =>
+  queryOptions({
+    queryKey: supplierOrgDetailKey(organizationId),
+    queryFn: async (): Promise<SupplierOrganizationDetail | null> => {
+      const { data, error } = await supabase
+        .from("organizations")
+        .select("id, name, phone, email, address, province, city, supplier_status")
+        .eq("id", organizationId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+export type SupplierOrganizationUpdateInput = {
+  name?: string;
+  phone?: string | null;
+  email?: string | null;
+  address?: string | null;
+  province?: string | null;
+  city?: string | null;
+};
+
+export function useUpdateSupplierOrganization(organizationId: string | null) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: SupplierOrganizationUpdateInput) => {
+      if (!organizationId) throw new Error("سازمان تأمین‌کننده پیدا نشد.");
+      const { error } = await supabase.from("organizations").update(input).eq("id", organizationId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["memberships"] });
+      queryClient.invalidateQueries({ queryKey: supplierOrgDetailKey(organizationId) });
+    },
+  });
+}
+
+/* -------------------------------------------------------------- */
+/* Supplier order counters (dashboard)                             */
+/* -------------------------------------------------------------- */
+
+export type SupplierOrderCounts = {
+  pending: number;
+  confirmed: number;
+  completed: number;
+};
+
+export function supplierOrderCountsKey(organizationId: string | null) {
+  return ["supplier-order-counts", organizationId] as const;
+}
+
+export const supplierOrderCountsQuery = (organizationId: string | null) =>
+  queryOptions({
+    queryKey: supplierOrderCountsKey(organizationId),
+    queryFn: async (): Promise<SupplierOrderCounts> => {
+      const { data, error } = await supabase
+        .from("orders")
+        .select("status")
+        .eq("supplier_organization_id", organizationId!);
+      if (error) throw error;
+      const rows = data ?? [];
+      return {
+        pending: rows.filter((r) => r.status === "pending").length,
+        confirmed: rows.filter((r) => r.status === "confirmed").length,
+        completed: rows.filter((r) => r.status === "completed").length,
+      };
+    },
+  });
