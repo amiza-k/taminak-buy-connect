@@ -9,7 +9,7 @@ import { useSupplierOrganization } from "@/hooks/use-organizations";
 import { supplierOrdersQuery, ORDER_STATUS_LABELS } from "@/lib/orders";
 import { formatDate, formatNumber, formatToman } from "@/lib/format";
 
-export const Route = createFileRoute("/_authenticated/orders/")({
+export const Route = createFileRoute("/_authenticated/supplier/orders/")({
   head: () => ({
     meta: [
       { title: "سفارش‌های دریافتی | تأمینک" },

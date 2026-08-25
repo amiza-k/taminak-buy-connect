@@ -16,7 +16,7 @@ import {
 } from "@/lib/orders";
 import { formatDate, formatNumber, formatToman } from "@/lib/format";
 
-export const Route = createFileRoute("/_authenticated/orders/$orderId")({
+export const Route = createFileRoute("/_authenticated/supplier/orders/$orderId")({
   head: () => ({
     meta: [
       { title: "جزئیات سفارش دریافتی | تأمینک" },
