@@ -5,34 +5,34 @@ import { Inbox } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { PageShell } from "@/components/page-shell";
 import { EmptyState, ErrorState, LoadingState } from "@/components/catalog";
-import { useBuyerOrganization } from "@/lib/cart";
-import { ordersQuery, ORDER_STATUS_LABELS } from "@/lib/orders";
-import { formatDate, formatToman } from "@/lib/format";
+import { useSupplierOrganization } from "@/hooks/use-organizations";
+import { supplierOrdersQuery, ORDER_STATUS_LABELS } from "@/lib/orders";
+import { formatDate, formatNumber, formatToman } from "@/lib/format";
 
-export const Route = createFileRoute("/_authenticated/orders/")({
+export const Route = createFileRoute("/_authenticated/supplier/orders/")({
   head: () => ({
     meta: [
-      { title: "سفارش‌های من | تأمینک" },
-      { name: "description", content: "پیگیری سفارش‌های ثبت‌شده کسب‌وکار شما در تأمینک." },
+      { title: "سفارش‌های دریافتی | تأمینک" },
+      { name: "description", content: "سفارش‌های ثبت‌شده توسط خریداران برای کسب‌وکار شما." },
     ],
   }),
-  component: BuyerOrdersPage,
+  component: SupplierOrdersPage,
 });
 
-function BuyerOrdersPage() {
-  const { organization, isPending: orgPending } = useBuyerOrganization();
+function SupplierOrdersPage() {
+  const { organization, isPending: orgPending } = useSupplierOrganization();
   const query = useQuery({
-    ...ordersQuery(organization?.id ?? null),
+    ...supplierOrdersQuery(organization?.id ?? null),
     enabled: Boolean(organization?.id),
   });
 
   return (
-    <PageShell title="سفارش‌های من" description="سفارش‌های ثبت‌شده برای کسب‌وکار شما">
+    <PageShell title="سفارش‌های دریافتی" description="سفارش‌های ثبت‌شده توسط خریداران">
       <div className="pb-24 md:pb-0">
         {orgPending ? (
           <LoadingState />
         ) : !organization ? (
-          <EmptyState label="ابتدا کسب‌وکار خود را ثبت کنید." />
+          <EmptyState label="شما عضو هیچ تأمین‌کننده‌ای نیستید." />
         ) : query.isPending ? (
           <LoadingState />
         ) : query.isError ? (
@@ -40,21 +40,21 @@ function BuyerOrdersPage() {
         ) : (query.data ?? []).length === 0 ? (
           <div className="rounded-xl border border-dashed border-border bg-card p-12 text-center">
             <Inbox className="mx-auto size-8 text-muted-foreground" />
-            <p className="mt-4 text-sm text-muted-foreground">هنوز سفارشی ثبت نکرده‌اید.</p>
+            <p className="mt-4 text-sm text-muted-foreground">هنوز سفارشی دریافت نشده است.</p>
           </div>
         ) : (
           <ul className="space-y-3">
             {(query.data ?? []).map((order) => (
               <li key={order.id}>
                 <Link
-                  to="/orders/$orderId"
+                  to="/supplier/orders/$orderId"
                   params={{ orderId: order.id }}
                   className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4 shadow-card transition-colors hover:border-primary/40"
                 >
                   <div>
-                    <p className="font-semibold">{order.supplierName}</p>
+                    <p className="font-semibold">{order.buyerName}</p>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      {formatDate(order.created_at)}
+                      {formatDate(order.created_at)} — {formatNumber(order.itemCount)} قلم کالا
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
