@@ -25,7 +25,6 @@ function NewProductSubmissionPage() {
   const [brand, setBrand] = useState("");
   const [unit, setUnit] = useState("");
   const [price, setPrice] = useState("");
-  const [sku, setSku] = useState("");
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -38,7 +37,7 @@ function NewProductSubmissionPage() {
         proposed_brand: brand,
         proposed_unit: unit,
         proposed_price: price,
-        proposed_sku: sku,
+        proposed_sku: "",
       },
       {
         onSuccess: () => {
@@ -78,7 +77,7 @@ function NewProductSubmissionPage() {
           <Input id="p-brand" value={brand} onChange={(e) => setBrand(e.target.value)} />
         </div>
       </div>
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
           <Label htmlFor="p-unit">واحد</Label>
           <Input id="p-unit" placeholder="کیلوگرم" value={unit} onChange={(e) => setUnit(e.target.value)} />
@@ -93,10 +92,6 @@ function NewProductSubmissionPage() {
             value={price}
             onChange={(e) => setPrice(e.target.value)}
           />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="p-sku">SKU</Label>
-          <Input id="p-sku" dir="ltr" value={sku} onChange={(e) => setSku(e.target.value)} />
         </div>
       </div>
       <Button type="submit" className="w-full" disabled={createSubmission.isPending || !orgId}>
