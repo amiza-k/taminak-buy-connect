@@ -17,6 +17,7 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AuthenticatedCartRouteImport } from './routes/_authenticated/cart'
 import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
+import { Route as AuthenticatedSupplierRouteRouteImport } from './routes/_authenticated/supplier/route'
 import { Route as ProductsIndexRouteImport } from './routes/products/index'
 import { Route as ProductsProductIdRouteImport } from './routes/products/$productId'
 import { Route as SuppliersIndexRouteImport } from './routes/suppliers/index'
@@ -63,6 +64,12 @@ const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSupplierRouteRoute =
+  AuthenticatedSupplierRouteRouteImport.update({
+    id: '/supplier',
+    path: '/supplier',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ProductsIndexRoute = ProductsIndexRouteImport.update({
   id: '/products/',
   path: '/products/',
@@ -85,15 +92,15 @@ const SuppliersSupplierIdRoute = SuppliersSupplierIdRouteImport.update({
 } as any)
 const AuthenticatedSupplierOrdersIndexRoute =
   AuthenticatedSupplierOrdersIndexRouteImport.update({
-    id: '/supplier/orders/',
-    path: '/supplier/orders/',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/orders/',
+    path: '/orders/',
+    getParentRoute: () => AuthenticatedSupplierRouteRoute,
   } as any)
 const AuthenticatedSupplierOrdersOrderIdRoute =
   AuthenticatedSupplierOrdersOrderIdRouteImport.update({
-    id: '/supplier/orders/$orderId',
-    path: '/supplier/orders/$orderId',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/orders/$orderId',
+    path: '/orders/$orderId',
+    getParentRoute: () => AuthenticatedSupplierRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -101,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/become-supplier': typeof BecomeSupplierRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/supplier': typeof AuthenticatedSupplierRouteRouteWithChildren
   '/cart': typeof AuthenticatedCartRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
@@ -116,6 +124,7 @@ export interface FileRoutesByTo {
   '/become-supplier': typeof BecomeSupplierRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/supplier': typeof AuthenticatedSupplierRouteRouteWithChildren
   '/cart': typeof AuthenticatedCartRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
@@ -133,6 +142,7 @@ export interface FileRoutesById {
   '/become-supplier': typeof BecomeSupplierRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/_authenticated/supplier': typeof AuthenticatedSupplierRouteRouteWithChildren
   '/_authenticated/cart': typeof AuthenticatedCartRoute
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
@@ -150,6 +160,7 @@ export interface FileRouteTypes {
     | '/become-supplier'
     | '/login'
     | '/signup'
+    | '/supplier'
     | '/cart'
     | '/checkout'
     | '/onboarding'
@@ -165,6 +176,7 @@ export interface FileRouteTypes {
     | '/become-supplier'
     | '/login'
     | '/signup'
+    | '/supplier'
     | '/cart'
     | '/checkout'
     | '/onboarding'
@@ -181,6 +193,7 @@ export interface FileRouteTypes {
     | '/become-supplier'
     | '/login'
     | '/signup'
+    | '/_authenticated/supplier'
     | '/_authenticated/cart'
     | '/_authenticated/checkout'
     | '/_authenticated/onboarding'
@@ -262,6 +275,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/supplier': {
+      id: '/_authenticated/supplier'
+      path: '/supplier'
+      fullPath: '/supplier'
+      preLoaderRoute: typeof AuthenticatedSupplierRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/products/': {
       id: '/products/'
       path: '/products'
@@ -292,36 +312,51 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/supplier/orders/': {
       id: '/_authenticated/supplier/orders/'
-      path: '/supplier/orders'
+      path: '/orders'
       fullPath: '/supplier/orders/'
       preLoaderRoute: typeof AuthenticatedSupplierOrdersIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedSupplierRouteRoute
     }
     '/_authenticated/supplier/orders/$orderId': {
       id: '/_authenticated/supplier/orders/$orderId'
-      path: '/supplier/orders/$orderId'
+      path: '/orders/$orderId'
       fullPath: '/supplier/orders/$orderId'
       preLoaderRoute: typeof AuthenticatedSupplierOrdersOrderIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedSupplierRouteRoute
     }
   }
 }
 
-interface AuthenticatedRouteRouteChildren {
-  AuthenticatedCartRoute: typeof AuthenticatedCartRoute
-  AuthenticatedCheckoutRoute: typeof AuthenticatedCheckoutRoute
-  AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
+interface AuthenticatedSupplierRouteRouteChildren {
   AuthenticatedSupplierOrdersOrderIdRoute: typeof AuthenticatedSupplierOrdersOrderIdRoute
   AuthenticatedSupplierOrdersIndexRoute: typeof AuthenticatedSupplierOrdersIndexRoute
 }
 
+const AuthenticatedSupplierRouteRouteChildren: AuthenticatedSupplierRouteRouteChildren =
+  {
+    AuthenticatedSupplierOrdersOrderIdRoute:
+      AuthenticatedSupplierOrdersOrderIdRoute,
+    AuthenticatedSupplierOrdersIndexRoute:
+      AuthenticatedSupplierOrdersIndexRoute,
+  }
+
+const AuthenticatedSupplierRouteRouteWithChildren =
+  AuthenticatedSupplierRouteRoute._addFileChildren(
+    AuthenticatedSupplierRouteRouteChildren,
+  )
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedSupplierRouteRoute: typeof AuthenticatedSupplierRouteRouteWithChildren
+  AuthenticatedCartRoute: typeof AuthenticatedCartRoute
+  AuthenticatedCheckoutRoute: typeof AuthenticatedCheckoutRoute
+  AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
+}
+
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedSupplierRouteRoute: AuthenticatedSupplierRouteRouteWithChildren,
   AuthenticatedCartRoute: AuthenticatedCartRoute,
   AuthenticatedCheckoutRoute: AuthenticatedCheckoutRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
-  AuthenticatedSupplierOrdersOrderIdRoute:
-    AuthenticatedSupplierOrdersOrderIdRoute,
-  AuthenticatedSupplierOrdersIndexRoute: AuthenticatedSupplierOrdersIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
