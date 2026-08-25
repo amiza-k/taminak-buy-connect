@@ -644,30 +644,6 @@ export type Database = {
           total: number
         }[]
       }
-      is_platform_admin: { 
-        Args: never; 
-        Returns: boolean 
-      }
-      update_order_status: {
-        Args: { 
-          p_order_id: string; 
-          p_status: string 
-        }
-        Returns: {
-          buyer_organization_id: string
-          contact_phone: string | null
-          created_at: string
-          created_by: string
-          delivery_address: string | null
-          id: string
-          note: string | null
-          status: string
-          subtotal: number
-          supplier_organization_id: string
-          total: number
-          updated_at: string
-        }
-      }
       create_organization_with_owner: {
         Args: {
           p_address?: string
@@ -691,6 +667,29 @@ export type Database = {
         Returns: boolean
       }
       is_platform_admin: { Args: never; Returns: boolean }
+      update_order_status: {
+        Args: { p_order_id: string; p_status: string }
+        Returns: {
+          buyer_organization_id: string
+          contact_phone: string | null
+          created_at: string
+          created_by: string
+          delivery_address: string | null
+          id: string
+          note: string | null
+          status: string
+          subtotal: number
+          supplier_organization_id: string
+          total: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
       [_ in never]: never
