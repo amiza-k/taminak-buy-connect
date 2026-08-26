@@ -25,6 +25,8 @@ export type SupplierOffer = {
   sku: string | null;
   unit_price: number;
   is_available: boolean;
+  stock_quantity: number;
+  description: string | null;
   product: { id: string; name: string; unit: string | null; category: string | null } | null;
 };
 
@@ -64,9 +66,8 @@ export function useSupplierMembership() {
       (memberships ?? []).find((m) => m.organizations?.type === "supplier") ?? null;
     const organization = membership?.organizations ?? null;
     const status = organization?.supplier_status ?? null;
-const isApproved =
-  Boolean(organization) && status === "approved";
-      return {
+    const isApproved = Boolean(organization) && status === "approved";
+    return {
       isPending,
       membership,
       organization,
@@ -164,7 +165,7 @@ export const supplierOffersQuery = (organizationId: string | null) =>
       const { data, error } = await supabase
         .from("supplier_products")
         .select(
-          "id, sku, unit_price, is_available, products ( id, name, unit, category )",
+          "id, sku, unit_price, is_available, stock_quantity, description, products ( id, name, unit, category )",
         )
         .eq("supplier_organization_id", organizationId!)
         .order("created_at", { ascending: false });
@@ -175,16 +176,83 @@ export const supplierOffersQuery = (organizationId: string | null) =>
           sku: string | null;
           unit_price: number;
           is_available: boolean;
-          products: { id: string; name: string; unit: string | null; category: string | null } | null;
+          stock_quantity: number;
+          description: string | null;
+          products: {
+            id: string;
+            name: string;
+            unit: string | null;
+            category: string | null;
+          } | null;
         };
         return {
           id: r.id,
           sku: r.sku,
           unit_price: Number(r.unit_price),
           is_available: r.is_available,
+          stock_quantity: Number(r.stock_quantity),
+          description: r.description,
           product: r.products,
         };
       });
+    },
+  });
+
+/**
+ * Adjusts an offer's stock via the adjust_supplier_stock RPC (the only
+ * permitted write path — stock_quantity is protected by a DB trigger against
+ * direct client writes). The RPC re-checks ownership and rejects negative
+ * results server-side.
+ */
+export function useAdjustSupplierStock(organizationId: string | null) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: { supplierProductId: string; delta: number; note?: string }) => {
+      const { data, error } = await supabase.rpc("adjust_supplier_stock", {
+        p_supplier_product_id: input.supplierProductId,
+        p_delta: input.delta,
+        ...(input.note ? { p_note: input.note } : {}),
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: supplierOffersKey(organizationId) });
+      queryClient.invalidateQueries({ queryKey: stockMovementsKey(variables.supplierProductId) });
+    },
+  });
+}
+
+export type StockMovement = {
+  id: string;
+  delta: number;
+  resulting_stock: number;
+  movement_type: string;
+  order_id: string | null;
+  note: string | null;
+  created_at: string;
+};
+
+export function stockMovementsKey(supplierProductId: string) {
+  return ["stock-movements", supplierProductId] as const;
+}
+
+export const stockMovementsQuery = (supplierProductId: string) =>
+  queryOptions({
+    queryKey: stockMovementsKey(supplierProductId),
+    queryFn: async (): Promise<StockMovement[]> => {
+      const { data, error } = await supabase
+        .from("supplier_stock_movements")
+        .select("id, delta, resulting_stock, movement_type, order_id, note, created_at")
+        .eq("supplier_product_id", supplierProductId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []).map((row) => ({
+        ...row,
+        delta: Number(row.delta),
+        resulting_stock: Number(row.resulting_stock),
+      }));
     },
   });
 
@@ -197,11 +265,7 @@ export function useUpdateSupplierOffer(organizationId: string | null) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (input: {
-      offerId: string;
-      unit_price?: number;
-      is_available?: boolean;
-    }) => {
+    mutationFn: async (input: { offerId: string; unit_price?: number; is_available?: boolean }) => {
       const patch: { unit_price?: number; is_available?: boolean } = {};
       if (input.unit_price !== undefined) patch.unit_price = input.unit_price;
       if (input.is_available !== undefined) patch.is_available = input.is_available;
@@ -211,6 +275,43 @@ export function useUpdateSupplierOffer(organizationId: string | null) {
         .update(patch)
         .eq("id", input.offerId);
       if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: supplierOffersKey(organizationId) });
+    },
+  });
+}
+
+/**
+ * Attaches the supplier's own offer to an EXISTING canonical product
+ * (spec section 1's primary path — no admin review needed, since the
+ * canonical product already exists). Plain insert: RLS
+ * (supplier_products_owner_insert) is the real authority.
+ */
+export function useAttachOfferToProduct(organizationId: string | null) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: {
+      productId: string;
+      unitPrice: number;
+      stockQuantity: number;
+      description?: string;
+    }) => {
+      if (!organizationId) throw new Error("سازمان تأمین‌کننده پیدا نشد.");
+      const { data, error } = await supabase
+        .from("supplier_products")
+        .insert({
+          supplier_organization_id: organizationId,
+          product_id: input.productId,
+          unit_price: input.unitPrice,
+          stock_quantity: input.stockQuantity,
+          ...(input.description ? { description: input.description } : {}),
+        })
+        .select("id")
+        .single();
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: supplierOffersKey(organizationId) });
@@ -251,7 +352,10 @@ export const supplierSubmissionsQuery = (organizationId: string | null) =>
 export type SubmissionInput = {
   proposed_name: string;
   proposed_description: string;
-  proposed_category: string;
+  /** Selected category's id (controlled taxonomy) — required. */
+  proposed_category_id: string;
+  /** Selected category's display name, kept for backward-compatible display. */
+  proposed_category_name: string;
   proposed_brand: string;
   proposed_unit: string;
   proposed_price: string;
@@ -271,7 +375,8 @@ export function useCreateSubmission(organizationId: string | null) {
           supplier_organization_id: organizationId,
           proposed_name: input.proposed_name.trim(),
           proposed_description: input.proposed_description.trim() || null,
-          proposed_category: input.proposed_category.trim() || null,
+          proposed_category: input.proposed_category_name || null,
+          proposed_category_id: input.proposed_category_id || null,
           proposed_brand: input.proposed_brand.trim() || null,
           proposed_unit: input.proposed_unit.trim() || null,
           proposed_sku: input.proposed_sku.trim() || null,

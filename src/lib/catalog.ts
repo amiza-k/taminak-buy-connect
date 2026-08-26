@@ -106,7 +106,8 @@ export async function fetchSuppliers(): Promise<SupplierSummary[]> {
     .from("organizations")
     .select(
       `${ORG_FIELDS}, supplier_products ( id, is_available ), reviews!reviews_supplier_organization_id_fkey ( rating )`,
-    )    .eq("type", "supplier")
+    )
+    .eq("type", "supplier")
     .order("name");
   if (error) throw error;
 
@@ -153,7 +154,9 @@ export async function fetchSupplier(supplierId: string): Promise<SupplierDetail 
     supplier_products: SupplierDetail["offers"] | null;
     reviews: SupplierDetail["reviews"] | null;
   };
-  const reviews = (org.reviews ?? []).slice().sort((a, b) => b.created_at.localeCompare(a.created_at));
+  const reviews = (org.reviews ?? [])
+    .slice()
+    .sort((a, b) => b.created_at.localeCompare(a.created_at));
   const { average, count } = averageRating(reviews.map((r) => r.rating));
 
   return {
@@ -208,6 +211,42 @@ export const supplierRatingsQuery = (supplierIds: string[]) =>
   queryOptions({
     queryKey: ["supplier-ratings", [...supplierIds].sort()],
     queryFn: () => fetchSupplierRatings(supplierIds),
+  });
+
+export type CanonicalProductOption = {
+  id: string;
+  name: string;
+  brand: string | null;
+  unit: string | null;
+  image_url: string | null;
+  category: string | null;
+};
+
+/**
+ * Searches active canonical products by name, for the supplier "attach my
+ * offer to an existing product" picker (spec section 1). Deliberately does
+ * not join supplier_products/organizations — this is just the canonical
+ * catalog, not price comparison.
+ */
+export async function searchCanonicalProducts(term: string): Promise<CanonicalProductOption[]> {
+  const trimmed = term.trim();
+  if (!trimmed) return [];
+  const escaped = trimmed.replace(/[%_,()]/g, (c) => `\\${c}`);
+  const { data, error } = await supabase
+    .from("products")
+    .select("id, name, brand, unit, image_url, category")
+    .eq("is_active", true)
+    .ilike("name", `%${escaped}%`)
+    .order("name")
+    .limit(20);
+  if (error) throw error;
+  return data ?? [];
+}
+
+export const canonicalProductSearchQuery = (term: string) =>
+  queryOptions({
+    queryKey: ["canonical-product-search", term],
+    queryFn: () => searchCanonicalProducts(term),
   });
 
 export function lowestAvailablePrice(offers: Offer[]): number | null {

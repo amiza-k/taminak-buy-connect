@@ -131,7 +131,7 @@ export function useRejectSupplierApplication() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ applicationId, reason }: { applicationId: string; reason: string }) => {
-            const { error } = await supabase.rpc("reject_supplier_application", {
+      const { error } = await supabase.rpc("reject_supplier_application", {
         p_application_id: applicationId,
         p_reason: reason,
       });
@@ -224,6 +224,25 @@ export function useApproveProductSubmission() {
     mutationFn: async (submissionId: string) => {
       const { error } = await supabase.rpc("approve_product_submission", {
         p_submission_id: submissionId,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => invalidateProductSubmissions(queryClient),
+  });
+}
+
+/**
+ * Approves a submission by attaching it to an EXISTING canonical product
+ * instead of creating a duplicate one — used when the admin recognizes the
+ * proposed item already exists in the catalog.
+ */
+export function useLinkProductSubmissionToExisting() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { submissionId: string; existingProductId: string }) => {
+      const { error } = await supabase.rpc("approve_product_submission_link_existing", {
+        p_submission_id: input.submissionId,
+        p_existing_product_id: input.existingProductId,
       });
       if (error) throw error;
     },

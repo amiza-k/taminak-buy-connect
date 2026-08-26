@@ -5,6 +5,7 @@ import { MapPin, Phone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { PageShell } from "@/components/page-shell";
 import { EmptyState, ErrorState, LoadingState } from "@/components/catalog";
+import { InvoiceSheet, PrintInvoiceButton } from "@/components/invoice";
 import { orderQuery, ORDER_STATUS_LABELS } from "@/lib/orders";
 import { formatDate, formatNumber, formatToman } from "@/lib/format";
 
@@ -50,8 +51,24 @@ function BuyerOrderDetailPage() {
   }
 
   return (
-    <PageShell title={`سفارش از ${order.supplierName}`} description={formatDate(order.created_at)}>
-      <div className="grid gap-6 pb-24 md:pb-0 lg:grid-cols-[1fr_320px]">
+    <PageShell
+      title={`سفارش از ${order.supplierName}`}
+      description={formatDate(order.created_at)}
+      actions={<PrintInvoiceButton />}
+    >
+      <InvoiceSheet
+        orderId={order.id}
+        counterpartyLabel="تأمین‌کننده"
+        counterpartyName={order.supplierName}
+        createdAt={order.created_at}
+        items={order.items}
+        subtotal={order.subtotal}
+        total={order.total}
+        deliveryAddress={order.delivery_address}
+        contactPhone={order.contact_phone}
+        note={order.note}
+      />
+      <div className="grid gap-6 pb-24 md:pb-0 lg:grid-cols-[1fr_320px] print:hidden">
         <div className="space-y-4">
           <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
             {order.items.map((item, index) => (

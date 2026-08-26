@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PageShell } from "@/components/page-shell";
 import { EmptyState, ErrorState, LoadingState } from "@/components/catalog";
+import { InvoiceSheet, PrintInvoiceButton } from "@/components/invoice";
 import { useSupplierOrganization } from "@/hooks/use-organizations";
 import {
   supplierOrderQuery,
@@ -75,8 +76,24 @@ function SupplierOrderDetailPage() {
   }
 
   return (
-    <PageShell title={`سفارش از ${order.buyerName}`} description={formatDate(order.created_at)}>
-      <div className="grid gap-6 pb-24 md:pb-0 lg:grid-cols-[1fr_320px]">
+    <PageShell
+      title={`سفارش از ${order.buyerName}`}
+      description={formatDate(order.created_at)}
+      actions={<PrintInvoiceButton />}
+    >
+      <InvoiceSheet
+        orderId={order.id}
+        counterpartyLabel="خریدار"
+        counterpartyName={order.buyerName}
+        createdAt={order.created_at}
+        items={order.items}
+        subtotal={order.subtotal}
+        total={order.total}
+        deliveryAddress={order.delivery_address}
+        contactPhone={order.contact_phone}
+        note={order.note}
+      />
+      <div className="grid gap-6 pb-24 md:pb-0 lg:grid-cols-[1fr_320px] print:hidden">
         <div className="space-y-4">
           <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
             {order.items.map((item, index) => (

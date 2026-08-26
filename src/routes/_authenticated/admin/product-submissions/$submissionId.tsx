@@ -5,19 +5,20 @@ import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { EmptyState, ErrorState, LoadingState } from "@/components/catalog";
 import {
   productSubmissionAdminQuery,
   useApproveProductSubmission,
+  useLinkProductSubmissionToExisting,
   useRejectProductSubmission,
 } from "@/lib/admin";
+import { canonicalProductSearchQuery } from "@/lib/catalog";
 import { formatDate, formatToman } from "@/lib/format";
 
-export const Route = createFileRoute(
-  "/_authenticated/admin/product-submissions/$submissionId",
-)({
+export const Route = createFileRoute("/_authenticated/admin/product-submissions/$submissionId")({
   head: () => ({ meta: [{ title: "جزئیات درخواست محصول | پنل مدیریت" }] }),
   component: AdminProductSubmissionDetailPage,
 });
@@ -32,9 +33,16 @@ function AdminProductSubmissionDetailPage() {
   const { submissionId } = Route.useParams();
   const query = useQuery(productSubmissionAdminQuery(submissionId));
   const approve = useApproveProductSubmission();
+  const linkExisting = useLinkProductSubmissionToExisting();
   const reject = useRejectProductSubmission();
   const [reason, setReason] = useState("");
   const [showRejectForm, setShowRejectForm] = useState(false);
+  const [showLinkSearch, setShowLinkSearch] = useState(false);
+  const [linkTerm, setLinkTerm] = useState("");
+  const linkResults = useQuery({
+    ...canonicalProductSearchQuery(linkTerm.trim()),
+    enabled: showLinkSearch && linkTerm.trim().length > 0,
+  });
 
   if (query.isPending) return <LoadingState />;
   if (query.isError) return <ErrorState onRetry={() => query.refetch()} />;
@@ -74,7 +82,9 @@ function AdminProductSubmissionDetailPage() {
         </div>
         <div>
           <p className="text-muted-foreground">SKU</p>
-          <p className="mt-1 font-medium" dir="ltr">{submission.proposed_sku ?? "—"}</p>
+          <p className="mt-1 font-medium" dir="ltr">
+            {submission.proposed_sku ?? "—"}
+          </p>
         </div>
         {submission.proposed_description ? (
           <div className="col-span-2">
@@ -115,7 +125,56 @@ function AdminProductSubmissionDetailPage() {
             >
               رد محصول
             </Button>
+            <Button
+              variant="outline"
+              disabled={linkExisting.isPending}
+              onClick={() => setShowLinkSearch((v) => !v)}
+            >
+              اتصال به محصول موجود
+            </Button>
           </div>
+
+          {showLinkSearch ? (
+            <div className="space-y-2">
+              <Label htmlFor="link-search">جست‌وجوی محصول Canonical موجود</Label>
+              <Input
+                id="link-search"
+                value={linkTerm}
+                onChange={(e) => setLinkTerm(e.target.value)}
+                placeholder="نام محصول را جست‌وجو کنید"
+              />
+              {linkResults.isPending && linkTerm.trim() ? (
+                <p className="text-xs text-muted-foreground">در حال جست‌وجو…</p>
+              ) : null}
+              {(linkResults.data ?? []).length > 0 ? (
+                <ul className="divide-y divide-border rounded-lg border border-border">
+                  {(linkResults.data ?? []).map((p) => (
+                    <li key={p.id} className="flex items-center justify-between gap-2 p-2 text-sm">
+                      <span>
+                        {p.name}
+                        {p.brand ? ` — ${p.brand}` : ""}
+                      </span>
+                      <Button
+                        size="sm"
+                        disabled={linkExisting.isPending}
+                        onClick={() =>
+                          linkExisting.mutate(
+                            { submissionId: submission.id, existingProductId: p.id },
+                            {
+                              onSuccess: () => toast.success("درخواست به محصول موجود متصل شد"),
+                              onError: () => toast.error("اتصال ناموفق بود"),
+                            },
+                          )
+                        }
+                      >
+                        اتصال
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+          ) : null}
 
           {showRejectForm ? (
             <div className="space-y-2">

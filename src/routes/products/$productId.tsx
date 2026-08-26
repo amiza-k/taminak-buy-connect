@@ -1,9 +1,10 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { MapPin, Package } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { PageShell } from "@/components/page-shell";
 import {
   AddToCartButton,
@@ -12,7 +13,7 @@ import {
   LoadingState,
   RatingBadge,
 } from "@/components/catalog";
-import { productQuery, supplierRatingsQuery } from "@/lib/catalog";
+import { productQuery, supplierRatingsQuery, type Offer } from "@/lib/catalog";
 import { formatToman } from "@/lib/format";
 
 export const Route = createFileRoute("/products/$productId")({
@@ -48,6 +49,32 @@ function ProductDetailPage() {
     enabled: supplierIds.length > 0,
   });
 
+  const SORT_OPTIONS = [
+    { value: "recommended", label: "پیشنهاد شده" },
+    { value: "cheapest", label: "ارزان‌ترین" },
+    { value: "rating", label: "بالاترین امتیاز" },
+    { value: "reviews", label: "بیشترین نظر" },
+  ] as const;
+  type SortKey = (typeof SORT_OPTIONS)[number]["value"];
+  const [sort, setSort] = useState<SortKey>("recommended");
+
+  const offers = useMemo(() => {
+    const list: Offer[] = [...(query.data?.supplier_products ?? [])];
+    const ratingOf = (o: Offer) => ratings.data?.[o.supplier_organization_id]?.rating ?? -1;
+    const reviewsOf = (o: Offer) => ratings.data?.[o.supplier_organization_id]?.reviewCount ?? 0;
+
+    return list.sort((a, b) => {
+      // Available offers always come before unavailable ones, regardless of sort.
+      if (a.is_available !== b.is_available) return a.is_available ? -1 : 1;
+
+      if (sort === "cheapest") return Number(a.unit_price) - Number(b.unit_price);
+      if (sort === "rating") return ratingOf(b) - ratingOf(a);
+      if (sort === "reviews") return reviewsOf(b) - reviewsOf(a);
+      // "recommended": highest-rated first, tie-broken by price.
+      return ratingOf(b) - ratingOf(a) || Number(a.unit_price) - Number(b.unit_price);
+    });
+  }, [query.data, sort, ratings.data]);
+
   if (query.isPending) {
     return (
       <PageShell title="محصول">
@@ -70,11 +97,6 @@ function ProductDetailPage() {
       </PageShell>
     );
   }
-
-  const offers = [...(product.supplier_products ?? [])].sort((a, b) => {
-    if (a.is_available !== b.is_available) return a.is_available ? -1 : 1;
-    return Number(a.unit_price) - Number(b.unit_price);
-  });
 
   return (
     <PageShell title={product.name} description={product.brand ?? undefined}>
@@ -100,11 +122,23 @@ function ProductDetailPage() {
         </div>
 
         <section className="space-y-3">
-          <div>
-            <h2 className="text-lg font-bold">مقایسه تأمین‌کننده‌ها</h2>
-            <p className="text-sm text-muted-foreground">
-              قیمت‌ها به تومان است. موجودها و ارزان‌ترین‌ها بالاتر نمایش داده می‌شوند.
-            </p>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-bold">مقایسه تأمین‌کننده‌ها</h2>
+              <p className="text-sm text-muted-foreground">قیمت‌ها به تومان است.</p>
+            </div>
+            <ToggleGroup
+              type="single"
+              value={sort}
+              onValueChange={(value) => value && setSort(value as SortKey)}
+              className="rounded-lg bg-muted p-1"
+            >
+              {SORT_OPTIONS.map((opt) => (
+                <ToggleGroupItem key={opt.value} value={opt.value} size="sm" className="text-xs">
+                  {opt.label}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
           </div>
 
           {offers.length === 0 ? (
