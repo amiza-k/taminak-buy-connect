@@ -116,6 +116,44 @@ export type Database = {
           },
         ]
       }
+      categories: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          parent_id: string | null
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          parent_id?: string | null
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          parent_id?: string | null
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       memberships: {
         Row: {
           created_at: string
@@ -334,6 +372,7 @@ export type Database = {
           id: string
           proposed_brand: string | null
           proposed_category: string | null
+          proposed_category_id: string | null
           proposed_description: string | null
           proposed_image_url: string | null
           proposed_name: string
@@ -354,6 +393,7 @@ export type Database = {
           id?: string
           proposed_brand?: string | null
           proposed_category?: string | null
+          proposed_category_id?: string | null
           proposed_description?: string | null
           proposed_image_url?: string | null
           proposed_name: string
@@ -374,6 +414,7 @@ export type Database = {
           id?: string
           proposed_brand?: string | null
           proposed_category?: string | null
+          proposed_category_id?: string | null
           proposed_description?: string | null
           proposed_image_url?: string | null
           proposed_name?: string
@@ -403,6 +444,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "product_submissions_proposed_category_id_fkey"
+            columns: ["proposed_category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "product_submissions_supplier_organization_id_fkey"
             columns: ["supplier_organization_id"]
             isOneToOne: false
@@ -415,6 +463,7 @@ export type Database = {
         Row: {
           brand: string | null
           category: string | null
+          category_id: string | null
           created_at: string
           description: string | null
           id: string
@@ -428,6 +477,7 @@ export type Database = {
         Insert: {
           brand?: string | null
           category?: string | null
+          category_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -441,6 +491,7 @@ export type Database = {
         Update: {
           brand?: string | null
           category?: string | null
+          category_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -451,7 +502,15 @@ export type Database = {
           unit?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -595,33 +654,77 @@ export type Database = {
         }
         Relationships: []
       }
+      supplier_offer_media: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          media_type: string
+          sort_order: number
+          storage_path: string
+          supplier_product_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          media_type: string
+          sort_order?: number
+          storage_path: string
+          supplier_product_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          media_type?: string
+          sort_order?: number
+          storage_path?: string
+          supplier_product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_offer_media_supplier_product_id_fkey"
+            columns: ["supplier_product_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       supplier_products: {
         Row: {
           created_at: string
+          description: string | null
           id: string
           is_available: boolean
           product_id: string
           sku: string | null
+          stock_quantity: number
           supplier_organization_id: string
           unit_price: number
           updated_at: string
         }
         Insert: {
           created_at?: string
+          description?: string | null
           id?: string
           is_available?: boolean
           product_id: string
           sku?: string | null
+          stock_quantity?: number
           supplier_organization_id: string
           unit_price: number
           updated_at?: string
         }
         Update: {
           created_at?: string
+          description?: string | null
           id?: string
           is_available?: boolean
           product_id?: string
           sku?: string | null
+          stock_quantity?: number
           supplier_organization_id?: string
           unit_price?: number
           updated_at?: string
@@ -643,11 +746,87 @@ export type Database = {
           },
         ]
       }
+      supplier_stock_movements: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          delta: number
+          id: string
+          movement_type: string
+          note: string | null
+          order_id: string | null
+          resulting_stock: number
+          supplier_product_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          delta: number
+          id?: string
+          movement_type: string
+          note?: string | null
+          order_id?: string | null
+          resulting_stock: number
+          supplier_product_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          delta?: number
+          id?: string
+          movement_type?: string
+          note?: string | null
+          order_id?: string | null
+          resulting_stock?: number
+          supplier_product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_stock_movements_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_stock_movements_supplier_product_id_fkey"
+            columns: ["supplier_product_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      adjust_supplier_stock: {
+        Args: {
+          p_delta: number
+          p_note?: string
+          p_supplier_product_id: string
+        }
+        Returns: {
+          created_at: string
+          description: string | null
+          id: string
+          is_available: boolean
+          product_id: string
+          sku: string | null
+          stock_quantity: number
+          supplier_organization_id: string
+          unit_price: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "supplier_products"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       admin_dashboard_counts: {
         Args: never
         Returns: {
@@ -660,6 +839,10 @@ export type Database = {
       }
       approve_product_submission: {
         Args: { p_submission_id: string }
+        Returns: string
+      }
+      approve_product_submission_link_existing: {
+        Args: { p_existing_product_id: string; p_submission_id: string }
         Returns: string
       }
       approve_supplier_application: {
