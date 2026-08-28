@@ -263,3 +263,179 @@ export function useRejectProductSubmission() {
     onSuccess: () => invalidateProductSubmissions(queryClient),
   });
 }
+
+/* -------------------------------------------------------------- */
+/* Canonical product catalog (admin CRUD)                          */
+/* -------------------------------------------------------------- */
+
+function slugify(name: string): string {
+  const base = name
+    .trim()
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, "-")
+    .replace(/^-+|-+$/g, "");
+  const suffix = Math.random().toString(36).slice(2, 8);
+  return `${base || "product"}-${suffix}`;
+}
+
+export type AdminProductListItem = {
+  id: string;
+  name: string;
+  category: string | null;
+  is_active: boolean;
+  offerCount: number;
+};
+
+export type AdminProductFilter = {
+  search: string;
+  categoryId: string | null;
+};
+
+export const adminProductsQuery = (filter: AdminProductFilter) =>
+  queryOptions({
+    queryKey: ["admin-products", filter.search, filter.categoryId],
+    queryFn: async (): Promise<AdminProductListItem[]> => {
+      let query = supabase
+        .from("products")
+        .select("id, name, category, is_active, supplier_products ( id )")
+        .order("name");
+
+      const term = filter.search.trim();
+      if (term) {
+        const escaped = term.replace(/[%,()]/g, " ");
+        query = query.ilike("name", `%${escaped}%`);
+      }
+      if (filter.categoryId) {
+        query = query.eq("category_id", filter.categoryId);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return (data ?? []).map((row) => {
+        const r = row as unknown as AdminProductListItem & {
+          supplier_products: { id: string }[] | null;
+        };
+        return {
+          id: r.id,
+          name: r.name,
+          category: r.category,
+          is_active: r.is_active,
+          offerCount: (r.supplier_products ?? []).length,
+        };
+      });
+    },
+  });
+
+export type AdminProductDetail = {
+  id: string;
+  name: string;
+  description: string | null;
+  category_id: string | null;
+  brand: string | null;
+  unit: string | null;
+  image_url: string | null;
+  is_active: boolean;
+};
+
+export const adminProductQuery = (productId: string) =>
+  queryOptions({
+    queryKey: ["admin-product", productId],
+    queryFn: async (): Promise<AdminProductDetail | null> => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("id, name, description, category_id, brand, unit, image_url, is_active")
+        .eq("id", productId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+export const adminProductOfferCountQuery = (productId: string) =>
+  queryOptions({
+    queryKey: ["admin-product-offer-count", productId],
+    queryFn: async (): Promise<number> => {
+      const { count, error } = await supabase
+        .from("supplier_products")
+        .select("id", { count: "exact", head: true })
+        .eq("product_id", productId);
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+
+export type AdminProductInput = {
+  name: string;
+  description?: string;
+  categoryId: string;
+  categoryName: string;
+  brand?: string;
+  unit?: string;
+  imageUrl?: string;
+  isActive: boolean;
+};
+
+/** Creates a new canonical product. Category must come from `categories` — never free text. */
+export function useCreateAdminProduct() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: AdminProductInput) => {
+      const { data, error } = await supabase
+        .from("products")
+        .insert({
+          name: input.name.trim(),
+          slug: slugify(input.name),
+          category_id: input.categoryId,
+          category: input.categoryName || null,
+          is_active: input.isActive,
+          ...(input.description?.trim() ? { description: input.description.trim() } : {}),
+          ...(input.brand?.trim() ? { brand: input.brand.trim() } : {}),
+          ...(input.unit?.trim() ? { unit: input.unit.trim() } : {}),
+          ...(input.imageUrl?.trim() ? { image_url: input.imageUrl.trim() } : {}),
+        })
+        .select("id")
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+    },
+  });
+}
+
+export type AdminProductUpdateInput = Partial<{
+  name: string;
+  description: string | null;
+  categoryId: string;
+  categoryName: string;
+  brand: string | null;
+  unit: string | null;
+  imageUrl: string | null;
+  isActive: boolean;
+}>;
+
+/** Edits an existing canonical product. Never touches supplier_products (offers). */
+export function useUpdateAdminProduct(productId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: AdminProductUpdateInput) => {
+      const patch: Record<string, unknown> = {};
+      if (input.name !== undefined) patch["name"] = input.name;
+      if (input.description !== undefined) patch["description"] = input.description;
+      if (input.categoryId !== undefined) patch["category_id"] = input.categoryId;
+      if (input.categoryName !== undefined) patch["category"] = input.categoryName;
+      if (input.brand !== undefined) patch["brand"] = input.brand;
+      if (input.unit !== undefined) patch["unit"] = input.unit;
+      if (input.imageUrl !== undefined) patch["image_url"] = input.imageUrl;
+      if (input.isActive !== undefined) patch["is_active"] = input.isActive;
+
+      const { error } = await supabase.from("products").update(patch).eq("id", productId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-product", productId] });
+    },
+  });
+}

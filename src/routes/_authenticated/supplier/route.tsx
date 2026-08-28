@@ -12,6 +12,8 @@ export const Route = createFileRoute("/_authenticated/supplier")({
 const TABS = [
   { to: "/supplier", label: "داشبورد", exact: true },
   { to: "/supplier/orders", label: "سفارش‌ها", exact: false },
+  { to: "/supplier/sales", label: "فروش‌ها", exact: false },
+  { to: "/supplier/invoices", label: "فاکتورها", exact: false },
   { to: "/supplier/products", label: "محصولات", exact: false },
   { to: "/supplier/submissions", label: "درخواست‌های محصول", exact: false },
   { to: "/supplier/profile", label: "پروفایل", exact: false },

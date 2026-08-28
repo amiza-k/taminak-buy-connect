@@ -35,6 +35,7 @@ export type OrderSummary = {
   created_at: string;
   supplier_organization_id: string;
   supplierName: string;
+  itemCount: number;
 };
 
 export type SupplierOrderSummary = {
@@ -111,7 +112,7 @@ async function fetchOrders(organizationId: string): Promise<OrderSummary[]> {
   const { data, error } = await supabase
     .from("orders")
     .select(
-      `id, status, subtotal, total, created_at, supplier_organization_id, ${ORDER_SUPPLIER_JOIN}`,
+      `id, status, subtotal, total, created_at, supplier_organization_id, ${ORDER_SUPPLIER_JOIN}, order_items ( id )`,
     )
     .eq("buyer_organization_id", organizationId)
     .order("created_at", { ascending: false });
@@ -126,6 +127,7 @@ async function fetchOrders(organizationId: string): Promise<OrderSummary[]> {
       created_at: string;
       supplier_organization_id: string;
       organizations: { id: string; name: string } | null;
+      order_items: { id: string }[] | null;
     };
     return {
       id: r.id,
@@ -135,6 +137,7 @@ async function fetchOrders(organizationId: string): Promise<OrderSummary[]> {
       created_at: r.created_at,
       supplier_organization_id: r.supplier_organization_id,
       supplierName: r.organizations?.name ?? "تأمین‌کننده",
+      itemCount: (r.order_items ?? []).length,
     };
   });
 }
@@ -315,3 +318,52 @@ export function useUpdateOrderStatus() {
     },
   });
 }
+
+export type SupplierSaleRow = SupplierOrderSummary & {
+  items: { id: string; product_name: string; quantity: number }[];
+};
+
+async function fetchSupplierSales(organizationId: string): Promise<SupplierSaleRow[]> {
+  const { data, error } = await supabase
+    .from("orders")
+    .select(
+      `id, status, subtotal, total, created_at, buyer_organization_id, ${ORDER_BUYER_JOIN}, order_items ( id, product_name, quantity )`,
+    )
+    .eq("supplier_organization_id", organizationId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+
+  return (data ?? []).map((row) => {
+    const r = row as unknown as {
+      id: string;
+      status: string;
+      subtotal: number;
+      total: number;
+      created_at: string;
+      buyer_organization_id: string;
+      organizations: { id: string; name: string } | null;
+      order_items: { id: string; product_name: string; quantity: number }[] | null;
+    };
+    return {
+      id: r.id,
+      status: r.status,
+      subtotal: Number(r.subtotal),
+      total: Number(r.total),
+      created_at: r.created_at,
+      buyer_organization_id: r.buyer_organization_id,
+      buyerName: r.organizations?.name ?? "خریدار",
+      itemCount: (r.order_items ?? []).length,
+      items: (r.order_items ?? []).map((i) => ({ ...i, quantity: Number(i.quantity) })),
+    };
+  });
+}
+
+export function supplierSalesKey(organizationId: string | null) {
+  return ["supplier-sales", organizationId] as const;
+}
+
+export const supplierSalesQuery = (organizationId: string | null) =>
+  queryOptions({
+    queryKey: supplierSalesKey(organizationId),
+    queryFn: () => fetchSupplierSales(organizationId!),
+  });

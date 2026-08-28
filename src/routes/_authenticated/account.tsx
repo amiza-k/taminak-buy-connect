@@ -39,6 +39,7 @@ function AccountPage() {
           <div className="space-y-2 rounded-xl border border-border bg-card p-2 shadow-card">
             <AccountRow to="/onboarding" icon={Building2} label="کسب‌وکار من" />
             <AccountRow to="/orders" icon={ClipboardList} label="سفارش‌های من" />
+            <AccountRow to="/account/invoices" icon={ClipboardList} label="فاکتورهای من" />
           </div>
           <div className="flex items-center gap-2 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
             <MapPin className="size-4" />
