@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 
@@ -7,15 +7,21 @@ import { Input } from "@/components/ui/input";
 import { PageShell } from "@/components/page-shell";
 import { LocationPicker } from "@/components/location-picker";
 import { EmptyState, ErrorState, LoadingState, ProductCard } from "@/components/catalog";
-import { matchesLocation, productsQuery, type ProductWithOffers } from "@/lib/catalog";
+import { CategoryProductSection, CategorySectionSkeleton } from "@/components/marketplace-sections";
+import { matchesLocation, productsQuery, groupProductsByCategory, type ProductWithOffers } from "@/lib/catalog";
+import { categoriesQuery } from "@/lib/categories";
 import { useMarketLocation } from "@/hooks/use-location";
 import { formatNumber } from "@/lib/format";
 
-type ProductSearch = { q?: string };
+type ProductSearch = { q?: string; category?: string };
 
 export const Route = createFileRoute("/products/")({
-  validateSearch: (search: Record<string, unknown>): ProductSearch =>
-    typeof search['q'] === "string" && search['q'] ? { q: search['q'] } : {},
+  validateSearch: (search: Record<string, unknown>): ProductSearch => ({
+    ...(typeof search['q'] === "string" && search['q'] ? { q: search['q'] } : {}),
+    ...(typeof search['category'] === "string" && search['category']
+      ? { category: search['category'] }
+      : {}),
+  }),
   head: () => ({
     meta: [
       { title: "محصولات | مقایسه قیمت تأمین‌کننده‌ها در تأمینک" },
@@ -37,7 +43,7 @@ export const Route = createFileRoute("/products/")({
 });
 
 function ProductsPage() {
-  const { q } = Route.useSearch();
+  const { q, category } = Route.useSearch();
   const navigate = useNavigate();
   const location = useMarketLocation();
   const [term, setTerm] = useState(q ?? "");
@@ -56,6 +62,7 @@ function ProductsPage() {
   }, [term, q, navigate]);
 
   const query = useQuery(productsQuery(q ?? ""));
+  const categoriesResult = useQuery(categoriesQuery());
 
   const products = useMemo<ProductWithOffers[]>(() => {
     const rows = query.data ?? [];
@@ -70,9 +77,22 @@ function ProductsPage() {
       .filter((product) => product.supplier_products.length > 0);
   }, [query.data, location]);
 
+  const activeCategory = useMemo(
+    () => (category ? (categoriesResult.data ?? []).find((c) => c.id === category) ?? null : null),
+    [category, categoriesResult.data],
+  );
+
+  const groups = useMemo(
+    () => groupProductsByCategory(products, categoriesResult.data ?? []),
+    [products, categoriesResult.data],
+  );
+
+  const showFlatGrid = Boolean(q) || Boolean(category);
+  const flatProducts = category ? products.filter((p) => p.category_id === category) : products;
+
   return (
     <PageShell
-      title={q ? `نتایج جستجو برای «${q}»` : "محصولات"}
+      title={activeCategory ? activeCategory.name : q ? `نتایج جستجو برای «${q}»` : "محصولات"}
       description="جست‌وجو، مقایسه قیمت و انتخاب تأمین‌کننده"
       actions={<LocationPicker />}
     >
@@ -87,23 +107,50 @@ function ProductsPage() {
         />
       </div>
 
-      {query.isPending ? (
-        <LoadingState />
+      {activeCategory ? (
+        <Link to="/products" className="mb-4 inline-block text-sm text-primary hover:underline">
+          ← بازگشت به همهٔ دسته‌بندی‌ها
+        </Link>
+      ) : null}
+
+      {query.isPending || categoriesResult.isPending ? (
+        showFlatGrid ? (
+          <LoadingState />
+        ) : (
+          <div className="space-y-10">
+            <CategorySectionSkeleton />
+            <CategorySectionSkeleton />
+          </div>
+        )
       ) : query.isError ? (
         <ErrorState onRetry={() => query.refetch()} />
-      ) : products.length === 0 ? (
+      ) : showFlatGrid ? (
+        flatProducts.length === 0 ? (
+          <EmptyState label="محصولی پیدا نشد." />
+        ) : (
+          <>
+            <p className="mb-4 text-sm text-muted-foreground">
+              {formatNumber(flatProducts.length)} محصول
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {flatProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          </>
+        )
+      ) : groups.length === 0 ? (
         <EmptyState label="محصولی پیدا نشد." />
       ) : (
-        <>
-          <p className="mb-4 text-sm text-muted-foreground">
-            {formatNumber(products.length)} محصول
-          </p>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        </>
+        <div className="space-y-10">
+          {groups.map((group) => (
+            <CategoryProductSection
+              key={group.category.id}
+              category={group.category}
+              products={group.products}
+            />
+          ))}
+        </div>
       )}
     </PageShell>
   );

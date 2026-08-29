@@ -1,13 +1,22 @@
-import { useMemo } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { Search } from "lucide-react";
 
+import { Input } from "@/components/ui/input";
 import { PageShell } from "@/components/page-shell";
-import { EmptyState, ErrorState, LoadingState, SupplierCard } from "@/components/catalog";
-import { matchesLocation, suppliersQuery } from "@/lib/catalog";
+import { LocationPicker } from "@/components/location-picker";
+import { EmptyState, ErrorState } from "@/components/catalog";
+import { CategorySectionSkeleton, SupplierStoreSection } from "@/components/marketplace-sections";
+import { matchesLocation, supplierStorefrontsQuery } from "@/lib/catalog";
+import { offerMediaBulkQuery } from "@/lib/supplier-media";
 import { useMarketLocation } from "@/hooks/use-location";
 
+type SupplierSearch = { q?: string };
+
 export const Route = createFileRoute("/suppliers/")({
+  validateSearch: (search: Record<string, unknown>): SupplierSearch =>
+    typeof search['q'] === "string" && search['q'] ? { q: search['q'] } : {},
   head: () => ({
     meta: [
       { title: "تأمین‌کننده‌های کافه و رستوران | تأمینک" },
@@ -28,29 +37,81 @@ export const Route = createFileRoute("/suppliers/")({
 });
 
 function SuppliersPage() {
+  const { q } = Route.useSearch();
+  const navigate = useNavigate();
   const location = useMarketLocation();
-  const query = useQuery(suppliersQuery());
+  const [term, setTerm] = useState(q ?? "");
 
-  const suppliers = useMemo(
-    () => (query.data ?? []).filter((s) => matchesLocation(s, location)),
-    [query.data, location],
+  useEffect(() => {
+    setTerm(q ?? "");
+  }, [q]);
+
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      const next = term.trim();
+      if (next === (q ?? "")) return;
+      navigate({ to: "/suppliers", search: next ? { q: next } : {}, replace: true });
+    }, 350);
+    return () => clearTimeout(handle);
+  }, [term, q, navigate]);
+
+  const query = useQuery(supplierStorefrontsQuery());
+
+  const storefronts = useMemo(() => {
+    let rows = query.data ?? [];
+    rows = rows.filter((s) => matchesLocation(s, location));
+    const term = (q ?? "").trim();
+    if (term) {
+      rows = rows.filter((s) => s.name.includes(term));
+    }
+    return rows;
+  }, [query.data, location, q]);
+
+  const allOfferIds = useMemo(
+    () => storefronts.flatMap((s) => s.offers.map((o) => o.id)),
+    [storefronts],
   );
+  const mediaQuery = useQuery({
+    ...offerMediaBulkQuery(allOfferIds),
+    enabled: allOfferIds.length > 0,
+  });
 
   return (
     <PageShell
       title="تأمین‌کننده‌ها"
-      description="تأمین‌کننده‌های فعال در محدوده انتخابی شما."
+      description="تأمین‌کننده‌های فعال در محدوده انتخابی شما"
+      actions={<LocationPicker />}
     >
+      <div className="mb-6 flex items-center gap-2 rounded-xl border border-border bg-card p-2">
+        <Search className="ms-2 size-4 shrink-0 text-muted-foreground" />
+        <Input
+          value={term}
+          onChange={(event) => setTerm(event.target.value)}
+          placeholder="جست‌وجوی نام فروشگاه یا تأمین‌کننده"
+          aria-label="جست‌وجوی تأمین‌کننده"
+          className="border-0 bg-transparent shadow-none focus-visible:ring-0"
+        />
+      </div>
+
       {query.isPending ? (
-        <LoadingState />
+        <div className="space-y-10">
+          <CategorySectionSkeleton />
+          <CategorySectionSkeleton />
+        </div>
       ) : query.isError ? (
         <ErrorState onRetry={() => query.refetch()} />
-      ) : suppliers.length === 0 ? (
-        <EmptyState label="تأمین‌کننده‌ای در این محدوده پیدا نشد." />
+      ) : storefronts.length === 0 ? (
+        <EmptyState
+          label={q ? "تأمین‌کننده‌ای با این نام پیدا نشد." : "تأمین‌کننده‌ای در این محدوده پیدا نشد."}
+        />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {suppliers.map((supplier) => (
-            <SupplierCard key={supplier.id} supplier={supplier} />
+        <div className="space-y-10">
+          {storefronts.map((storefront) => (
+            <SupplierStoreSection
+              key={storefront.id}
+              storefront={storefront}
+              mediaMap={mediaQuery.data ?? {}}
+            />
           ))}
         </div>
       )}

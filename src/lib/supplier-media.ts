@@ -10,7 +10,8 @@ export type SupplierOfferMedia = {
   url: string;
 };
 
-const BUCKET = "supplier-offer-media";
+export const OFFER_MEDIA_BUCKET = "supplier-offer-media";
+const BUCKET = OFFER_MEDIA_BUCKET;
 
 export function offerMediaKey(supplierProductId: string) {
   return ["offer-media", supplierProductId] as const;
@@ -92,3 +93,39 @@ export function useDeleteOfferMedia(supplierProductId: string) {
     },
   });
 }
+
+export type SupplierOfferMediaMap = Record<string, SupplierOfferMedia[]>;
+
+/**
+ * Fetches media for many offers in a single request (avoids N+1 when
+ * rendering a grid/list of supplier offers, e.g. on /suppliers).
+ */
+export const offerMediaBulkQuery = (supplierProductIds: string[]) =>
+  queryOptions({
+    queryKey: ["offer-media-bulk", [...supplierProductIds].sort()],
+    queryFn: async (): Promise<SupplierOfferMediaMap> => {
+      if (supplierProductIds.length === 0) return {};
+      const { data, error } = await supabase
+        .from("supplier_offer_media")
+        .select("id, media_type, storage_path, sort_order, supplier_product_id")
+        .in("supplier_product_id", supplierProductIds)
+        .order("sort_order", { ascending: true });
+      if (error) throw error;
+
+      const grouped: SupplierOfferMediaMap = {};
+      for (const row of data ?? []) {
+        const url = supabase.storage.from(OFFER_MEDIA_BUCKET).getPublicUrl(row.storage_path).data
+          .publicUrl;
+        const entry: SupplierOfferMedia = {
+          id: row.id,
+          media_type: row.media_type as "image" | "video",
+          storage_path: row.storage_path,
+          sort_order: row.sort_order,
+          url,
+        };
+        (grouped[row.supplier_product_id] ??= []).push(entry);
+      }
+      return grouped;
+    },
+  });
+  

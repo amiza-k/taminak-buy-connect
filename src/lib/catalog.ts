@@ -27,6 +27,7 @@ export type ProductRow = {
   slug: string;
   description: string | null;
   category: string | null;
+  category_id: string | null;
   brand: string | null;
   unit: string | null;
   image_url: string | null;
@@ -58,7 +59,7 @@ export function averageRating(ratings: number[]): { average: number | null; coun
 }
 
 const ORG_FIELDS = "id, name, province, city, address, supplier_status";
-const PRODUCT_FIELDS = "id, name, slug, description, category, brand, unit, image_url";
+const PRODUCT_FIELDS = "id, name, slug, description, category, category_id, brand, unit, image_url";
 
 export async function fetchProducts(search: string): Promise<ProductWithOffers[]> {
   let query = supabase
@@ -252,4 +253,78 @@ export const canonicalProductSearchQuery = (term: string) =>
 export function lowestAvailablePrice(offers: Offer[]): number | null {
   const prices = offers.filter((o) => o.is_available).map((o) => Number(o.unit_price));
   return prices.length ? Math.min(...prices) : null;
+}
+
+export type SupplierOfferPreview = {
+  id: string;
+  unit_price: number;
+  product: ProductRow;
+};
+
+export type SupplierStorefront = SupplierOrg & {
+  rating: number | null;
+  reviewCount: number;
+  offers: SupplierOfferPreview[];
+};
+
+/**
+ * One row per supplier with its available offers + canonical product info +
+ * rating, in a single query (no N+1) -- used by the /suppliers storefront
+ * grid. Suppliers with zero displayable (available) offers are dropped.
+ */
+export async function fetchSupplierStorefronts(): Promise<SupplierStorefront[]> {
+  const { data, error } = await supabase
+    .from("organizations")
+    .select(
+      `${ORG_FIELDS}, supplier_products ( id, unit_price, is_available, products ( ${PRODUCT_FIELDS} ) ), reviews!reviews_supplier_organization_id_fkey ( rating )`,
+    )
+    .eq("type", "supplier")
+    .order("name");
+  if (error) throw error;
+
+  return (data ?? [])
+    .map((row) => {
+      const org = row as unknown as SupplierOrg & {
+        supplier_products:
+          | { id: string; unit_price: number; is_available: boolean; products: ProductRow | null }[]
+          | null;
+        reviews: { rating: number }[] | null;
+      };
+      const { average, count } = averageRating((org.reviews ?? []).map((r) => r.rating));
+      const offers: SupplierOfferPreview[] = (org.supplier_products ?? [])
+        .filter((o) => o.is_available && o.products)
+        .map((o) => ({ id: o.id, unit_price: Number(o.unit_price), product: o.products! }));
+      return {
+        id: org.id,
+        name: org.name,
+        province: org.province,
+        city: org.city,
+        address: org.address,
+        supplier_status: org.supplier_status,
+        rating: average,
+        reviewCount: count,
+        offers,
+      };
+    })
+    .filter((s) => s.offers.length > 0);
+}
+
+export const supplierStorefrontsQuery = () =>
+  queryOptions({ queryKey: ["supplier-storefronts"], queryFn: fetchSupplierStorefronts });
+
+/** Groups active products by category for the /products marketplace grid. Categories with no visible product are dropped. */
+export function groupProductsByCategory<T extends { category_id: string | null }>(
+  products: T[],
+  categories: { id: string; name: string; slug: string }[],
+): { category: { id: string; name: string; slug: string }; products: T[] }[] {
+  const byCategory = new Map<string, T[]>();
+  for (const product of products) {
+    if (!product.category_id) continue;
+    const list = byCategory.get(product.category_id);
+    if (list) list.push(product);
+    else byCategory.set(product.category_id, [product]);
+  }
+  return categories
+    .map((category) => ({ category, products: byCategory.get(category.id) ?? [] }))
+    .filter((group) => group.products.length > 0);
 }

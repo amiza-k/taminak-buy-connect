@@ -33,6 +33,7 @@ import { Route as AuthenticatedSupplierInvoicesRouteImport } from './routes/_aut
 import { Route as AuthenticatedSupplierProfileRouteImport } from './routes/_authenticated/supplier/profile'
 import { Route as AuthenticatedSupplierSalesRouteImport } from './routes/_authenticated/supplier/sales'
 import { Route as AuthenticatedSupplierSubmissionsRouteImport } from './routes/_authenticated/supplier/submissions'
+import { Route as AuthenticatedAdminCategoriesIndexRouteImport } from './routes/_authenticated/admin/categories/index'
 import { Route as AuthenticatedAdminProductSubmissionsIndexRouteImport } from './routes/_authenticated/admin/product-submissions/index'
 import { Route as AuthenticatedAdminProductSubmissionsSubmissionIdRouteImport } from './routes/_authenticated/admin/product-submissions/$submissionId'
 import { Route as AuthenticatedAdminProductsIndexRouteImport } from './routes/_authenticated/admin/products/index'
@@ -173,6 +174,12 @@ const AuthenticatedSupplierSubmissionsRoute =
     path: '/submissions',
     getParentRoute: () => AuthenticatedSupplierRouteRoute,
   } as any)
+const AuthenticatedAdminCategoriesIndexRoute =
+  AuthenticatedAdminCategoriesIndexRouteImport.update({
+    id: '/categories/',
+    path: '/categories/',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminProductSubmissionsIndexRoute =
   AuthenticatedAdminProductSubmissionsIndexRouteImport.update({
     id: '/product-submissions/',
@@ -270,6 +277,7 @@ export interface FileRoutesByFullPath {
   '/admin/supplier-applications/$applicationId': typeof AuthenticatedAdminSupplierApplicationsApplicationIdRoute
   '/supplier/orders/$orderId': typeof AuthenticatedSupplierOrdersOrderIdRoute
   '/supplier/products/new': typeof AuthenticatedSupplierProductsNewRoute
+  '/admin/categories/': typeof AuthenticatedAdminCategoriesIndexRoute
   '/admin/product-submissions/': typeof AuthenticatedAdminProductSubmissionsIndexRoute
   '/admin/products/': typeof AuthenticatedAdminProductsIndexRoute
   '/admin/supplier-applications/': typeof AuthenticatedAdminSupplierApplicationsIndexRoute
@@ -304,6 +312,7 @@ export interface FileRoutesByTo {
   '/admin/supplier-applications/$applicationId': typeof AuthenticatedAdminSupplierApplicationsApplicationIdRoute
   '/supplier/orders/$orderId': typeof AuthenticatedSupplierOrdersOrderIdRoute
   '/supplier/products/new': typeof AuthenticatedSupplierProductsNewRoute
+  '/admin/categories': typeof AuthenticatedAdminCategoriesIndexRoute
   '/admin/product-submissions': typeof AuthenticatedAdminProductSubmissionsIndexRoute
   '/admin/products': typeof AuthenticatedAdminProductsIndexRoute
   '/admin/supplier-applications': typeof AuthenticatedAdminSupplierApplicationsIndexRoute
@@ -342,6 +351,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/supplier-applications/$applicationId': typeof AuthenticatedAdminSupplierApplicationsApplicationIdRoute
   '/_authenticated/supplier/orders/$orderId': typeof AuthenticatedSupplierOrdersOrderIdRoute
   '/_authenticated/supplier/products/new': typeof AuthenticatedSupplierProductsNewRoute
+  '/_authenticated/admin/categories/': typeof AuthenticatedAdminCategoriesIndexRoute
   '/_authenticated/admin/product-submissions/': typeof AuthenticatedAdminProductSubmissionsIndexRoute
   '/_authenticated/admin/products/': typeof AuthenticatedAdminProductsIndexRoute
   '/_authenticated/admin/supplier-applications/': typeof AuthenticatedAdminSupplierApplicationsIndexRoute
@@ -380,6 +390,7 @@ export interface FileRouteTypes {
     | '/admin/supplier-applications/$applicationId'
     | '/supplier/orders/$orderId'
     | '/supplier/products/new'
+    | '/admin/categories/'
     | '/admin/product-submissions/'
     | '/admin/products/'
     | '/admin/supplier-applications/'
@@ -414,6 +425,7 @@ export interface FileRouteTypes {
     | '/admin/supplier-applications/$applicationId'
     | '/supplier/orders/$orderId'
     | '/supplier/products/new'
+    | '/admin/categories'
     | '/admin/product-submissions'
     | '/admin/products'
     | '/admin/supplier-applications'
@@ -451,6 +463,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/supplier-applications/$applicationId'
     | '/_authenticated/supplier/orders/$orderId'
     | '/_authenticated/supplier/products/new'
+    | '/_authenticated/admin/categories/'
     | '/_authenticated/admin/product-submissions/'
     | '/_authenticated/admin/products/'
     | '/_authenticated/admin/supplier-applications/'
@@ -640,6 +653,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSupplierSubmissionsRouteImport
       parentRoute: typeof AuthenticatedSupplierRouteRoute
     }
+    '/_authenticated/admin/categories/': {
+      id: '/_authenticated/admin/categories/'
+      path: '/categories'
+      fullPath: '/admin/categories/'
+      preLoaderRoute: typeof AuthenticatedAdminCategoriesIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/product-submissions/': {
       id: '/_authenticated/admin/product-submissions/'
       path: '/product-submissions'
@@ -726,6 +746,7 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminProductsProductIdRoute: typeof AuthenticatedAdminProductsProductIdRoute
   AuthenticatedAdminProductsNewRoute: typeof AuthenticatedAdminProductsNewRoute
   AuthenticatedAdminSupplierApplicationsApplicationIdRoute: typeof AuthenticatedAdminSupplierApplicationsApplicationIdRoute
+  AuthenticatedAdminCategoriesIndexRoute: typeof AuthenticatedAdminCategoriesIndexRoute
   AuthenticatedAdminProductSubmissionsIndexRoute: typeof AuthenticatedAdminProductSubmissionsIndexRoute
   AuthenticatedAdminProductsIndexRoute: typeof AuthenticatedAdminProductsIndexRoute
   AuthenticatedAdminSupplierApplicationsIndexRoute: typeof AuthenticatedAdminSupplierApplicationsIndexRoute
@@ -741,6 +762,8 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminProductsNewRoute: AuthenticatedAdminProductsNewRoute,
     AuthenticatedAdminSupplierApplicationsApplicationIdRoute:
       AuthenticatedAdminSupplierApplicationsApplicationIdRoute,
+    AuthenticatedAdminCategoriesIndexRoute:
+      AuthenticatedAdminCategoriesIndexRoute,
     AuthenticatedAdminProductSubmissionsIndexRoute:
       AuthenticatedAdminProductSubmissionsIndexRoute,
     AuthenticatedAdminProductsIndexRoute: AuthenticatedAdminProductsIndexRoute,

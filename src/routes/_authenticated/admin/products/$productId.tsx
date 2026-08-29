@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -15,9 +15,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Trash2 } from "lucide-react";
+
 import { EmptyState, ErrorState, LoadingState } from "@/components/catalog";
 import { categoriesQuery } from "@/lib/categories";
-import { adminProductQuery, adminProductOfferCountQuery, useUpdateAdminProduct } from "@/lib/admin";
+import {
+  adminProductQuery,
+  adminProductOfferCountQuery,
+  useUpdateAdminProduct,
+  useDeleteAdminProduct,
+} from "@/lib/admin";
 import { formatNumber } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/admin/products/$productId")({
@@ -31,6 +38,8 @@ function AdminProductDetailPage() {
   const query = useQuery(adminProductQuery(productId));
   const offerCount = useQuery(adminProductOfferCountQuery(productId));
   const update = useUpdateAdminProduct(productId);
+  const deleteProduct = useDeleteAdminProduct();
+  const navigate = useNavigate();
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -78,6 +87,20 @@ function AdminProductDetailPage() {
         onError: () => toast.error("ذخیره تغییرات ناموفق بود"),
       },
     );
+  }
+
+    function handleDelete() {
+    if (!window.confirm("این محصول برای همیشه حذف می‌شود. ادامه می‌دهید؟")) return;
+    deleteProduct.mutate(productId, {
+      onSuccess: () => {
+        toast.success("محصول حذف شد");
+        navigate({ to: "/admin/products" });
+      },
+      onError: () =>
+        toast.error(
+          "این محصول وابستگی دارد (مثلاً سفارش یا پیشنهاد فروشنده) و قابل حذف نیست؛ به‌جای حذف، آن را غیرفعال کنید.",
+        ),
+    });
   }
 
   return (
@@ -134,9 +157,21 @@ function AdminProductDetailPage() {
           <Switch checked={isActive} onCheckedChange={setIsActive} />
           <span className="text-sm text-muted-foreground">{isActive ? "فعال" : "غیرفعال"}</span>
         </div>
-        <Button type="submit" disabled={update.isPending}>
-          {update.isPending ? "در حال ذخیره…" : "ذخیره تغییرات"}
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button type="submit" disabled={update.isPending}>
+            {update.isPending ? "در حال ذخیره…" : "ذخیره تغییرات"}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="text-destructive hover:text-destructive"
+            disabled={deleteProduct.isPending}
+            onClick={handleDelete}
+          >
+            <Trash2 className="size-4" />
+            حذف محصول
+          </Button>
+        </div>
       </form>
     </div>
   );

@@ -2,6 +2,8 @@ import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/r
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import type { TablesUpdate } from "@/integrations/supabase/types";
+
 
 /* -------------------------------------------------------------- */
 /* Platform admin check                                            */
@@ -420,15 +422,15 @@ export function useUpdateAdminProduct(productId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: AdminProductUpdateInput) => {
-      const patch: Record<string, unknown> = {};
-      if (input.name !== undefined) patch["name"] = input.name;
-      if (input.description !== undefined) patch["description"] = input.description;
-      if (input.categoryId !== undefined) patch["category_id"] = input.categoryId;
-      if (input.categoryName !== undefined) patch["category"] = input.categoryName;
-      if (input.brand !== undefined) patch["brand"] = input.brand;
-      if (input.unit !== undefined) patch["unit"] = input.unit;
-      if (input.imageUrl !== undefined) patch["image_url"] = input.imageUrl;
-      if (input.isActive !== undefined) patch["is_active"] = input.isActive;
+      const patch: TablesUpdate<"products"> = {};
+      if (input.name !== undefined) patch.name = input.name;
+      if (input.description !== undefined) patch.description = input.description;
+      if (input.categoryId !== undefined) patch.category_id = input.categoryId;
+      if (input.categoryName !== undefined) patch.category = input.categoryName;
+      if (input.brand !== undefined) patch.brand = input.brand;
+      if (input.unit !== undefined) patch.unit = input.unit;
+      if (input.imageUrl !== undefined) patch.image_url = input.imageUrl;
+      if (input.isActive !== undefined) patch.is_active = input.isActive;
 
       const { error } = await supabase.from("products").update(patch).eq("id", productId);
       if (error) throw error;
@@ -436,6 +438,25 @@ export function useUpdateAdminProduct(productId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-products"] });
       queryClient.invalidateQueries({ queryKey: ["admin-product", productId] });
+    },
+  });
+}
+
+/**
+ * Hard-deletes a canonical product. This will fail with a foreign-key error
+ * if any order_items/supplier_products/product_submissions still reference
+ * it — in that case, use `useUpdateAdminProduct` with `isActive: false`
+ * instead of deleting.
+ */
+export function useDeleteAdminProduct() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (productId: string) => {
+      const { error } = await supabase.from("products").delete().eq("id", productId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-products"] });
     },
   });
 }
