@@ -45,8 +45,8 @@ export function SiteHeader() {
   const { organization: supplierOrg } = useSupplierOrganization();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4">
+    <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur print:hidden">
+            <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4">
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon" className="md:hidden" aria-label="منو">

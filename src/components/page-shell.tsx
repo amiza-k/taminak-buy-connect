@@ -12,8 +12,9 @@ export function PageShell({
   children: ReactNode;
 }) {
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-8">
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+    <div className="mx-auto w-full max-w-6xl px-4 py-8 print:p-0">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3 print:hidden">
+        
         <div>
           <h1 className="text-2xl font-bold sm:text-3xl">{title}</h1>
           {description ? (
