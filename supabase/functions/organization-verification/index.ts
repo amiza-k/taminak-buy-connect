@@ -11,6 +11,27 @@ async function sha256(value: string) {
   return [...new Uint8Array(hash)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
+function normalizeIranianMobileNumber(value: string | null) {
+  const normalized = (value ?? "")
+    .trim()
+    .replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)))
+    .replace(/[\s()-]/g, "")
+    .replace(/^\+98/, "0")
+    .replace(/^0098/, "0")
+    .replace(/^98(?=9\d{9}$)/, "0");
+
+  return /^09\d{9}$/.test(normalized) ? normalized : null;
+}
+
+async function providerError(response: Response, deliveryMethod: "پیامک" | "ایمیل") {
+  const body = await response.text();
+  console.error("Verification delivery provider rejected request", {
+    status: response.status,
+    body: body.slice(0, 1_000),
+  });
+  return `سامانه ارسال ${deliveryMethod} درخواست را نپذیرفت. تنظیمات سرویس ارسال را بررسی کنید.`;
+}
+
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
@@ -45,6 +66,17 @@ Deno.serve(async (request) => {
       .eq("id", organizationId)
       .single();
     if (orgError) throw orgError;
+
+    const recipient =
+      channel === "phone" ? normalizeIranianMobileNumber(org.phone) : org.email?.trim();
+    if (!recipient) {
+      throw new Error(
+        channel === "phone"
+          ? "یک شماره موبایل ایران معتبر برای مجموعه ثبت کنید"
+          : "یک ایمیل معتبر برای مجموعه ثبت کنید",
+      );
+    }
+
     const verificationCode = String(Math.floor(100000 + Math.random() * 900000));
     const { error: codeError } = await supabase.rpc("store_organization_verification_code", {
       p_organization_id: organizationId,
@@ -55,32 +87,32 @@ Deno.serve(async (request) => {
 
     if (channel === "phone") {
       const apiKey = Deno.env.get("KAVENEGAR_API_KEY");
-      if (!apiKey) throw new Error("KAVENEGAR_API_KEY is not configured");
+      if (!apiKey) throw new Error("سامانه ارسال پیامک پیکربندی نشده است");
       const params = new URLSearchParams({
-        receptor: org.phone,
+        receptor: recipient,
         message: `کد تأیید تأمینک: ${verificationCode}`,
       });
       const sms = await fetch(`https://api.kavenegar.com/v1/${apiKey}/sms/send.json`, {
         method: "POST",
         body: params,
       });
-      if (!sms.ok) throw new Error("SMS delivery failed");
+      if (!sms.ok) throw new Error(await providerError(sms, "پیامک"));
     } else {
       // Supabase Edge Functions need an email delivery provider. Configure RESEND_API_KEY and VERIFIED_FROM_EMAIL.
       const apiKey = Deno.env.get("RESEND_API_KEY");
       const from = Deno.env.get("VERIFIED_FROM_EMAIL");
-      if (!apiKey || !from) throw new Error("Email delivery is not configured");
+      if (!apiKey || !from) throw new Error("سامانه ارسال ایمیل پیکربندی نشده است");
       const email = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
           from,
-          to: [org.email],
+          to: [recipient],
           subject: "کد تأیید تأمینک",
           text: `کد تأیید شما: ${verificationCode}`,
         }),
       });
-      if (!email.ok) throw new Error("Email delivery failed");
+      if (!email.ok) throw new Error(await providerError(email, "ایمیل"));
     }
     return Response.json({ ok: true }, { headers: corsHeaders });
   } catch (error) {

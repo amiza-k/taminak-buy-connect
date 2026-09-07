@@ -50,7 +50,14 @@ function VerificationButton({
       const { data, error } = await supabase.functions.invoke("organization-verification", {
         body: { organizationId, channel, ...body },
       });
-      if (error) throw error;
+      if (error) {
+        const response = error.context;
+        if (response instanceof Response) {
+          const payload = await response.json().catch(() => null);
+          if (typeof payload?.error === "string") throw new Error(payload.error);
+        }
+        throw error;
+      }
       if (data?.error) throw new Error(data.error);
     },
     onSuccess: (_, variables) => {
