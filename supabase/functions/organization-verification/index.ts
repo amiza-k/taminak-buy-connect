@@ -87,15 +87,23 @@ Deno.serve(async (request) => {
 
     if (channel === "phone") {
       const apiKey = Deno.env.get("KAVENEGAR_API_KEY");
-      if (!apiKey) throw new Error("سامانه ارسال پیامک پیکربندی نشده است");
+      const sender = Deno.env.get("KAVENEGAR_SENDER");
+
+      if (!apiKey || !sender) {
+        throw new Error("سامانه ارسال پیامک پیکربندی نشده است");
+      }
+
       const params = new URLSearchParams({
         receptor: recipient,
+        sender,
         message: `کد تأیید تأمینک: ${verificationCode}`,
       });
+
       const sms = await fetch(`https://api.kavenegar.com/v1/${apiKey}/sms/send.json`, {
         method: "POST",
         body: params,
       });
+
       if (!sms.ok) throw new Error(await providerError(sms, "پیامک"));
     } else {
       // Supabase Edge Functions need an email delivery provider. Configure RESEND_API_KEY and VERIFIED_FROM_EMAIL.
