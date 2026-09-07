@@ -15,6 +15,13 @@ export type MembershipWithOrg = {
     province: string | null;
     city: string | null;
     supplier_status: string | null;
+        phone_verified: boolean;
+    email_verified: boolean;
+    phone: string | null;
+    email: string | null;
+    address: string | null;
+    latitude: number | null;
+    longitude: number | null;
   } | null;
 };
 
@@ -28,7 +35,7 @@ export function useMyMemberships() {
       const { data, error } = await supabase
         .from("memberships")
         .select(
-          "id, role, organization_id, organizations ( id, name, type, province, city, supplier_status )",
+          "id, role, organization_id, organizations ( id, name, type, province, city, supplier_status, phone_verified, email_verified, phone, email, address, latitude, longitude )",
         )
         .eq("user_id", user!.id);
       if (error) throw error;
@@ -60,8 +67,7 @@ export function useSupplierOrganization() {
   const { data: memberships, isPending } = useMyMemberships();
   const organization = useMemo(
     () =>
-      (memberships ?? []).find((m) => m.organizations?.type === "supplier")?.organizations ??
-      null,
+      (memberships ?? []).find((m) => m.organizations?.type === "supplier")?.organizations ?? null,
     [memberships],
   );
   return { organization, isPending };

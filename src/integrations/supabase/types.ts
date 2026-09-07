@@ -314,8 +314,12 @@ export type Database = {
           created_at: string
           email: string | null
           id: string
+          latitude: number | null
+          longitude: number | null
           name: string
           phone: string | null
+          phone_verified: boolean
+          email_verified: boolean
           province: string | null
           supplier_status: string | null
           type: string
@@ -327,8 +331,12 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           name: string
           phone?: string | null
+          phone_verified?: boolean
+          email_verified?: boolean
           province?: string | null
           supplier_status?: string | null
           type: string
@@ -340,8 +348,12 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           name?: string
           phone?: string | null
+          phone_verified?: boolean
+          email_verified?: boolean
           province?: string | null
           supplier_status?: string | null
           type?: string

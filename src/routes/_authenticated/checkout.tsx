@@ -4,9 +4,9 @@ import { CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { PageShell } from "@/components/page-shell";
 import { EmptyState, ErrorState, LoadingState } from "@/components/catalog";
 import { useBuyerOrganization, useCart, cartTotals, groupBySupplier } from "@/lib/cart";
@@ -28,8 +28,6 @@ function CheckoutPage() {
   const cart = useCart();
   const checkout = useCheckout();
 
-  const [deliveryAddress, setDeliveryAddress] = useState("");
-  const [contactPhone, setContactPhone] = useState("");
   const [note, setNote] = useState("");
   const [result, setResult] = useState<CheckoutResult[] | null>(null);
 
@@ -117,20 +115,25 @@ function CheckoutPage() {
   }
 
   const cartId = cart.data?.cartId;
-
+  
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     if (!cartId || !organization) return;
-    if (!deliveryAddress.trim() || !contactPhone.trim()) {
-      toast.error("آدرس و شماره تماس الزامی است.");
+    if (
+      !organization.phone_verified ||
+      !organization.email_verified ||
+      !organization.address ||
+      !organization.phone
+    ) {
+      toast.error("برای ثبت سفارش، تلفن، ایمیل و آدرس کسب‌وکار باید تأیید و تکمیل شده باشد.");
       return;
     }
     checkout.mutate(
       {
         cartId,
         organizationId: organization.id,
-        deliveryAddress: deliveryAddress.trim(),
-        contactPhone: contactPhone.trim(),
+        deliveryAddress: organization.address,
+        contactPhone: organization.phone,
         ...(note.trim() ? { note: note.trim() } : {}),
       },
       {
@@ -187,25 +190,31 @@ function CheckoutPage() {
             onSubmit={handleSubmit}
             className="space-y-4 rounded-xl border border-border bg-card p-5 shadow-card"
           >
-            <div className="space-y-2">
-              <Label htmlFor="delivery-address">آدرس دریافت سفارش</Label>
-              <Textarea
-                id="delivery-address"
-                required
-                rows={3}
-                value={deliveryAddress}
-                onChange={(e) => setDeliveryAddress(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="contact-phone">شماره تماس</Label>
-              <Input
-                id="contact-phone"
-                dir="ltr"
-                required
-                value={contactPhone}
-                onChange={(e) => setContactPhone(e.target.value)}
-              />
+            <div className="rounded-lg border border-border bg-secondary/30 p-4 text-sm">
+              <div className="mb-2 flex items-center justify-between">
+                <p className="font-medium">لوکیشن دریافت سفارش</p>
+                {organization.phone_verified && organization.email_verified ? (
+                  <Badge variant="secondary">تأیید شده</Badge>
+                ) : (
+                  <Badge variant="destructive">نیازمند تأیید</Badge>
+                )}
+              </div>
+              <p>{organization.name}</p>
+              <p className="mt-1 text-muted-foreground">
+                {organization.address ?? "آدرس ثبت نشده"}
+              </p>
+              <p className="mt-1 text-muted-foreground" dir="ltr">
+                {organization.phone ?? "تلفن ثبت نشده"}
+              </p>
+              {(!organization.phone_verified ||
+                !organization.email_verified ||
+                !organization.address ||
+                !organization.phone) && (
+                <p className="mt-3 text-destructive">
+                  این لوکیشن هنوز برای سفارش آماده نیست؛ آن را از بخش کسب‌وکار من تکمیل و تأیید
+                  کنید.
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="note">توضیحات سفارش (اختیاری)</Label>
@@ -230,8 +239,19 @@ function CheckoutPage() {
             <span>جمع کل:</span>
             <span className="text-lg font-bold text-primary">{formatToman(totals.subtotal)}</span>
           </div>
-          <Button type="submit" form="checkout-form" className="w-full" disabled={checkout.isPending}>
-            {checkout.isPending ? "در حال ثبت سفارش…" : "ثبت نهایی سفارش"}
+          <Button
+            type="submit"
+            form="checkout-form"
+            className="w-full"
+            disabled={
+              checkout.isPending ||
+              !organization.phone_verified ||
+              !organization.email_verified ||
+              !organization.address ||
+              !organization.phone
+            }
+          >
+          {checkout.isPending ? "در حال ثبت سفارش…" : "ثبت نهایی سفارش"}
           </Button>
         </aside>
       </div>

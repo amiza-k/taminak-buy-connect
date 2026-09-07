@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Building2, Check } from "lucide-react";
+import { Building2, Check, Mail, MapPin, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 
+import { MapPicker, type LatLng } from "@/components/map/map-picker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,20 +16,7 @@ import { PageShell } from "@/components/page-shell";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyMemberships } from "@/hooks/use-organizations";
 
-export const Route = createFileRoute("/_authenticated/onboarding")({
-  head: () => ({
-    meta: [
-      { title: "کسب‌وکار من | تأمینک" },
-      {
-        name: "description",
-        content: "کافه یا رستوران خود را ثبت کنید تا بتوانید سبد خرید و سفارش سازمانی داشته باشید.",
-      },
-      { property: "og:title", content: "ثبت کسب‌وکار در تأمینک" },
-      { property: "og:description", content: "ساخت مجموعه رستوران یا کافه برای ثبت سفارش." },
-    ],
-  }),
-  component: OnboardingPage,
-});
+export const Route = createFileRoute("/_authenticated/onboarding")({ component: OnboardingPage });
 
 const ROLE_LABELS: Record<string, string> = {
   owner: "مالک",
@@ -39,45 +27,109 @@ const ROLE_LABELS: Record<string, string> = {
   member: "عضو",
 };
 
+function VerificationButton({
+  organizationId,
+  channel,
+  verified,
+}: {
+  organizationId: string;
+  channel: "phone" | "email";
+  verified: boolean;
+}) {
+  const [code, setCode] = useState("");
+  const queryClient = useQueryClient();
+  const verify = useMutation({
+    mutationFn: async (body: { code?: string }) => {
+      const { data, error } = await supabase.functions.invoke("organization-verification", {
+        body: { organizationId, channel, ...body },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+    },
+    onSuccess: (_, variables) => {
+      if (variables.code) {
+        toast.success("تأیید شد");
+        queryClient.invalidateQueries({ queryKey: ["memberships"] });
+      } else toast.success("کد تأیید ارسال شد");
+    },
+    onError: (error: Error) =>
+      toast.error("عملیات تأیید ناموفق بود", { description: error.message }),
+  });
+  if (verified) return <Badge variant="secondary">تأیید شده</Badge>;
+  return (
+    <div className="flex gap-2">
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        onClick={() => verify.mutate({})}
+        disabled={verify.isPending}
+      >
+        ارسال کد
+      </Button>
+      <Input
+        aria-label="کد تأیید"
+        className="h-8 w-24"
+        dir="ltr"
+        value={code}
+        onChange={(e) => setCode(e.target.value)}
+        placeholder="۶ رقم"
+      />
+      <Button
+        type="button"
+        size="sm"
+        onClick={() => verify.mutate({ code })}
+        disabled={verify.isPending || code.length !== 6}
+      >
+        تأیید
+      </Button>
+    </div>
+  );
+}
+
 function OnboardingPage() {
   const queryClient = useQueryClient();
   const memberships = useMyMemberships();
-
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
-
+  const [coords, setCoords] = useState<LatLng | null>(null);
   const createOrg = useMutation({
     mutationFn: async () => {
-      const { data, error } = await supabase.rpc("create_organization_with_owner", {
+      const { data: organizationId, error } = await supabase.rpc("create_organization_with_owner", {
         p_name: name,
         p_type: "restaurant",
-        ...(phone ? { p_phone: phone } : {}),
-        ...(email ? { p_email: email } : {}),
-        ...(address ? { p_address: address } : {}),
+        p_phone: phone,
+        p_email: email,
+        p_address: address,
       });
       if (error) throw error;
-      return data;
+      if (coords) {
+        const { error: locationError } = await supabase
+          .from("organizations")
+          .update({ latitude: coords.lat, longitude: coords.lng })
+          .eq("id", organizationId);
+        if (locationError) throw locationError;
+      }
     },
     onSuccess: () => {
-      toast.success("کسب‌وکار شما ثبت شد");
+      toast.success("کسب‌وکار ثبت شد؛ اکنون تلفن و ایمیل را تأیید کنید.");
       setName("");
       setPhone("");
       setEmail("");
       setAddress("");
+      setCoords(null);
       queryClient.invalidateQueries({ queryKey: ["memberships"] });
     },
-    onError: (error: Error) => {
-      toast.error("ثبت کسب‌وکار ناموفق بود", { description: error.message });
-    },
+    onError: (error: Error) =>
+      toast.error("ثبت کسب‌وکار ناموفق بود", { description: error.message }),
   });
-
   return (
     <PageShell
       title="کسب‌وکار من"
-      description="برای ثبت سفارش، ابتدا کافه یا رستوران خود را ایجاد کنید"
-    >
+      description="برای ثبت سفارش، یک لوکیشن با اطلاعات تماس تأییدشده بسازید"
+      >
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="shadow-card">
           <CardHeader>
@@ -85,7 +137,9 @@ function OnboardingPage() {
               <Building2 className="size-4 text-primary" />
               مجموعه‌های من
             </CardTitle>
-            <CardDescription>یک نفر می‌تواند عضو چند کسب‌وکار باشد.</CardDescription>
+            <CardDescription>
+              فقط لوکیشن‌های دارای تلفن و ایمیل تأییدشده برای سفارش استفاده می‌شوند.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {memberships.isLoading ? (
@@ -93,40 +147,69 @@ function OnboardingPage() {
                 <Skeleton className="h-16 w-full" />
                 <Skeleton className="h-16 w-full" />
               </>
-            ) : memberships.data && memberships.data.length > 0 ? (
-              memberships.data.map((m) => (
-                <div
-                  key={m.id}
-                  className="flex items-center justify-between rounded-lg border border-border p-3"
-                >
-                  <div>
-                    <p className="font-medium">{m.organizations?.name ?? "بدون نام"}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {m.organizations?.type === "supplier" ? "تأمین‌کننده" : "رستوران / کافه"}
-                      {m.organizations?.city ? ` — ${m.organizations.city}` : ""}
-                    </p>
+               ) : (
+              (memberships.data
+                ?.filter((m) => m.organizations?.type !== "supplier")
+                .map((m) => (
+                  <div key={m.id} className="space-y-3 rounded-lg border border-border p-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium">{m.organizations?.name ?? "بدون نام"}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {m.organizations?.city ?? "لوکیشن کسب‌وکار"}
+                        </p>
+                      </div>
+                      <Badge variant="secondary">{ROLE_LABELS[m.role] ?? m.role}</Badge>
+                    </div>
+                    {(m.role === "owner" || m.role === "manager") && m.organizations && (
+                      <div className="space-y-2 border-t pt-3 text-sm">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="flex items-center gap-1">
+                            <Smartphone className="size-4" />
+                            تلفن
+                          </span>
+                          <VerificationButton
+                            organizationId={m.organization_id}
+                            channel="phone"
+                            verified={m.organizations.phone_verified}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="flex items-center gap-1">
+                            <Mail className="size-4" />
+                            ایمیل
+                          </span>
+                          <VerificationButton
+                            organizationId={m.organization_id}
+                            channel="email"
+                            verified={m.organizations.email_verified}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <Badge variant="secondary">{ROLE_LABELS[m.role] ?? m.role}</Badge>
-                </div>
+                  )) ?? (
+                <p className="text-sm text-muted-foreground">هنوز کسب‌وکاری ثبت نکرده‌اید.</p>
               ))
-            ) : (
-              <p className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-                هنوز کسب‌وکاری ثبت نکرده‌اید.
-              </p>
             )}
           </CardContent>
         </Card>
-
         <Card className="shadow-card">
           <CardHeader>
             <CardTitle className="text-base">ثبت کافه یا رستوران جدید</CardTitle>
-            <CardDescription>کافه‌ها نیز با نوع «رستوران» ثبت می‌شوند.</CardDescription>
+            <CardDescription>
+              آدرس، تلفن و ایمیل این لوکیشن در سفارش‌ها استفاده می‌شود.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form
               className="space-y-4"
               onSubmit={(event) => {
                 event.preventDefault();
+                if (!phone || !email || !address) {
+                  toast.error("تلفن، ایمیل و آدرس الزامی است.");
+                  return;
+                }
                 createOrg.mutate();
               }}
             >
@@ -144,6 +227,7 @@ function OnboardingPage() {
                   <Label htmlFor="org-phone">تلفن</Label>
                   <Input
                     id="org-phone"
+                    required
                     dir="ltr"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
@@ -153,6 +237,7 @@ function OnboardingPage() {
                   <Label htmlFor="org-email">ایمیل</Label>
                   <Input
                     id="org-email"
+                    required
                     type="email"
                     dir="ltr"
                     value={email}
@@ -164,10 +249,25 @@ function OnboardingPage() {
                 <Label htmlFor="org-address">آدرس</Label>
                 <Textarea
                   id="org-address"
+                  required
                   rows={3}
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                 />
+              </div>
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1">
+                  <MapPin className="size-4" />
+                  موقعیت دقیق روی نقشه
+                </Label>
+                <MapPicker
+                  value={coords}
+                  onChange={setCoords}
+                  className="h-56 w-full rounded-lg border border-border"
+                />
+                <p className="text-xs text-muted-foreground">
+                  برای جابه‌جایی نشانگر روی نقشه کلیک کنید یا آن را بکشید.
+                </p>
               </div>
               <Button type="submit" className="w-full" disabled={createOrg.isPending}>
                 <Check className="size-4" />
