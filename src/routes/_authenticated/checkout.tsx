@@ -121,11 +121,10 @@ function CheckoutPage() {
     if (!cartId || !organization) return;
     if (
       !organization.phone_verified ||
-      !organization.email_verified ||
       !organization.address ||
       !organization.phone
     ) {
-      toast.error("برای ثبت سفارش، تلفن، ایمیل و آدرس کسب‌وکار باید تأیید و تکمیل شده باشد.");
+      toast.error("برای ثبت سفارش، تلفن و آدرس کسب‌وکار باید تأیید و تکمیل شده باشد.");
       return;
     }
     checkout.mutate(
@@ -206,10 +205,7 @@ function CheckoutPage() {
               <p className="mt-1 text-muted-foreground" dir="ltr">
                 {organization.phone ?? "تلفن ثبت نشده"}
               </p>
-              {(!organization.phone_verified ||
-                !organization.email_verified ||
-                !organization.address ||
-                !organization.phone) && (
+              {(!organization.phone_verified || !organization.address || !organization.phone) && (
                 <p className="mt-3 text-destructive">
                   این لوکیشن هنوز برای سفارش آماده نیست؛ آن را از بخش کسب‌وکار من تکمیل و تأیید
                   کنید.
@@ -246,7 +242,6 @@ function CheckoutPage() {
             disabled={
               checkout.isPending ||
               !organization.phone_verified ||
-              !organization.email_verified ||
               !organization.address ||
               !organization.phone
             }
