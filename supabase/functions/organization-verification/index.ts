@@ -32,6 +32,19 @@ async function providerError(response: Response, deliveryMethod: "پیامک" | 
   return `سامانه ارسال ${deliveryMethod} درخواست را نپذیرفت. تنظیمات سرویس ارسال را بررسی کنید.`;
 }
 
+function errorMessage(error: unknown) {
+  if (error instanceof Error) return error.message;
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "message" in error &&
+    typeof error.message === "string"
+  ) {
+    return error.message;
+  }
+  return "Verification failed";
+}
+
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
@@ -88,11 +101,7 @@ Deno.serve(async (request) => {
     if (channel === "phone") {
       const apiKey = Deno.env.get("KAVENEGAR_API_KEY");
       const sender = Deno.env.get("KAVENEGAR_SENDER");
-
-      if (!apiKey || !sender) {
-        throw new Error("سامانه ارسال پیامک پیکربندی نشده است");
-      }
-
+      if (!apiKey || !sender) throw new Error("سامانه ارسال پیامک پیکربندی نشده است");
       const params = new URLSearchParams({
         receptor: recipient,
         sender,
@@ -124,9 +133,6 @@ Deno.serve(async (request) => {
     }
     return Response.json({ ok: true }, { headers: corsHeaders });
   } catch (error) {
-    return Response.json(
-      { error: error instanceof Error ? error.message : "Verification failed" },
-      { status: 400, headers: corsHeaders },
-    );
+    return Response.json({ error: errorMessage(error) }, { status: 400, headers: corsHeaders });
   }
 });
