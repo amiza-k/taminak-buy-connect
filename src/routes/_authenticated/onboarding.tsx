@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Building2, Check, Mail, MapPin, Smartphone } from "lucide-react";
+import { Building2, Check, Mail, MapPin, Pencil, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 
 import { MapPicker, type LatLng } from "@/components/map/map-picker";
@@ -11,10 +11,17 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageShell } from "@/components/page-shell";
 import { supabase } from "@/integrations/supabase/client";
-import { useMyMemberships } from "@/hooks/use-organizations";
+import { type MembershipWithOrg, useMyMemberships } from "@/hooks/use-organizations";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({ component: OnboardingPage });
 
@@ -87,6 +94,151 @@ function VerificationButton({
   );
 }
 
+function EditOrganizationDialog({
+  membership,
+  open,
+  onOpenChange,
+}: {
+  membership: MembershipWithOrg | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const queryClient = useQueryClient();
+  const organization = membership?.organizations;
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [address, setAddress] = useState("");
+  const [coords, setCoords] = useState<LatLng | null>(null);
+
+  const updateOrganization = useMutation({
+    mutationFn: async () => {
+      if (!organization) return;
+      const { error } = await supabase
+        .from("organizations")
+        .update({
+          name: name.trim(),
+          phone: phone.trim() || null,
+          email: email.trim() || null,
+          address: address.trim() || null,
+          latitude: coords?.lat ?? null,
+          longitude: coords?.lng ?? null,
+        })
+        .eq("id", organization.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("تغییرات مجموعه ذخیره شد");
+      queryClient.invalidateQueries({ queryKey: ["memberships"] });
+      onOpenChange(false);
+    },
+    onError: (error: Error) =>
+      toast.error("ذخیره تغییرات ناموفق بود", { description: error.message }),
+  });
+
+  useEffect(() => {
+    if (!open) return;
+    setName(organization?.name ?? "");
+    setPhone(organization?.phone ?? "");
+    setEmail(organization?.email ?? "");
+    setAddress(organization?.address ?? "");
+    setCoords(
+      organization?.latitude !== null &&
+        organization?.latitude !== undefined &&
+        organization.longitude !== null &&
+        organization.longitude !== undefined
+        ? { lat: organization.latitude, lng: organization.longitude }
+        : null,
+    );
+  }, [open, organization]);
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        onOpenChange(nextOpen);
+      }}
+    >
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl" dir="rtl">
+        <DialogHeader>
+          <DialogTitle>ویرایش مجموعه</DialogTitle>
+          <DialogDescription>
+            تغییر شماره تلفن یا ایمیل، نیاز به تأیید دوباره آن راه ارتباطی دارد.
+          </DialogDescription>
+        </DialogHeader>
+        <form
+          className="space-y-4"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (!name.trim() || !phone.trim() || !email.trim() || !address.trim()) {
+              toast.error("نام، تلفن، ایمیل و آدرس الزامی است.");
+              return;
+            }
+            updateOrganization.mutate();
+          }}
+        >
+          <div className="space-y-2">
+            <Label htmlFor="edit-org-name">نام کسب‌وکار</Label>
+            <Input
+              id="edit-org-name"
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="edit-org-phone">تلفن</Label>
+              <Input
+                id="edit-org-phone"
+                required
+                dir="ltr"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-org-email">ایمیل</Label>
+              <Input
+                id="edit-org-email"
+                required
+                type="email"
+                dir="ltr"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-org-address">آدرس</Label>
+            <Textarea
+              id="edit-org-address"
+              required
+              rows={3}
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="flex items-center gap-1">
+              <MapPin className="size-4" />
+              موقعیت دقیق روی نقشه
+            </Label>
+            <MapPicker
+              value={coords}
+              onChange={setCoords}
+              className="h-56 w-full rounded-lg border border-border"
+            />
+          </div>
+          <Button type="submit" className="w-full" disabled={updateOrganization.isPending}>
+            {updateOrganization.isPending ? "در حال ذخیره…" : "ذخیره تغییرات"}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function OnboardingPage() {
   const queryClient = useQueryClient();
   const memberships = useMyMemberships();
@@ -95,6 +247,7 @@ function OnboardingPage() {
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
   const [coords, setCoords] = useState<LatLng | null>(null);
+  const [editingMembership, setEditingMembership] = useState<MembershipWithOrg | null>(null);
   const createOrg = useMutation({
     mutationFn: async () => {
       const { data: organizationId, error } = await supabase.rpc("create_organization_with_owner", {
@@ -129,8 +282,8 @@ function OnboardingPage() {
     <PageShell
       title="کسب‌وکار من"
       description="برای ثبت سفارش، یک لوکیشن با اطلاعات تماس تأییدشده بسازید"
-      >
-      <div className="grid gap-6 lg:grid-cols-2">
+    >
+<div className="grid gap-6 lg:grid-cols-2">
         <Card className="shadow-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
@@ -147,9 +300,9 @@ function OnboardingPage() {
                 <Skeleton className="h-16 w-full" />
                 <Skeleton className="h-16 w-full" />
               </>
-               ) : (
-              (memberships.data
-                ?.filter((m) => m.organizations?.type !== "supplier")
+            ) : memberships.data?.filter((m) => m.organizations?.type !== "supplier").length ? (
+              memberships.data
+                .filter((m) => m.organizations?.type !== "supplier")
                 .map((m) => (
                   <div key={m.id} className="space-y-3 rounded-lg border border-border p-3">
                     <div className="flex items-center justify-between">
@@ -159,7 +312,20 @@ function OnboardingPage() {
                           {m.organizations?.city ?? "لوکیشن کسب‌وکار"}
                         </p>
                       </div>
-                      <Badge variant="secondary">{ROLE_LABELS[m.role] ?? m.role}</Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary">{ROLE_LABELS[m.role] ?? m.role}</Badge>
+                        {(m.role === "owner" || m.role === "manager") && m.organizations && (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setEditingMembership(m)}
+                          >
+                            <Pencil className="size-4" />
+                            ویرایش
+                          </Button>
+                        )}
+                      </div>
                     </div>
                     {(m.role === "owner" || m.role === "manager") && m.organizations && (
                       <div className="space-y-2 border-t pt-3 text-sm">
@@ -188,9 +354,9 @@ function OnboardingPage() {
                       </div>
                     )}
                   </div>
-                  )) ?? (
-                <p className="text-sm text-muted-foreground">هنوز کسب‌وکاری ثبت نکرده‌اید.</p>
-              ))
+                ))
+            ) : (
+              <p className="text-sm text-muted-foreground">هنوز کسب‌وکاری ثبت نکرده‌اید.</p>
             )}
           </CardContent>
         </Card>
@@ -277,6 +443,13 @@ function OnboardingPage() {
           </CardContent>
         </Card>
       </div>
+      <EditOrganizationDialog
+        membership={editingMembership}
+        open={Boolean(editingMembership)}
+        onOpenChange={(open) => {
+          if (!open) setEditingMembership(null);
+        }}
+      />
     </PageShell>
   );
 }
