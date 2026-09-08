@@ -114,8 +114,8 @@ export const offerMediaBulkQuery = (supplierProductIds: string[]) =>
 
       const grouped: SupplierOfferMediaMap = {};
       for (const row of data ?? []) {
-        const url = supabase.storage.from(OFFER_MEDIA_BUCKET).getPublicUrl(row.storage_path).data
-          .publicUrl;
+        const url = supabase.storage.from(OFFER_MEDIA_BUCKET).getPublicUrl(row.storage_path)
+          .data.publicUrl;
         const entry: SupplierOfferMedia = {
           id: row.id,
           media_type: row.media_type as "image" | "video",
@@ -128,4 +128,3 @@ export const offerMediaBulkQuery = (supplierProductIds: string[]) =>
       return grouped;
     },
   });
-  

@@ -30,7 +30,7 @@ export const Route = createFileRoute("/_authenticated/supplier/profile")({
 
 function SupplierProfilePage() {
   const { organization } = useSupplierMembership();
-    const orgId = organization?.id ?? null;
+  const orgId = organization?.id ?? null;
   const query = useQuery({ ...supplierOrgDetailQuery(orgId), enabled: Boolean(orgId) });
   const updateOrg = useUpdateSupplierOrganization(orgId);
 
@@ -57,7 +57,14 @@ function SupplierProfilePage() {
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     updateOrg.mutate(
-      { name, phone: phone || null, email: email || null, address: address || null, province, city },
+      {
+        name,
+        phone: phone || null,
+        email: email || null,
+        address: address || null,
+        province,
+        city,
+      },
       {
         onSuccess: () => toast.success("پروفایل به‌روزرسانی شد"),
         onError: () => toast.error("ذخیره تغییرات ناموفق بود"),
@@ -82,7 +89,12 @@ function SupplierProfilePage() {
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
             <Label htmlFor="s-phone">تلفن</Label>
-            <Input id="s-phone" dir="ltr" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            <Input
+              id="s-phone"
+              dir="ltr"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="s-email">ایمیل</Label>

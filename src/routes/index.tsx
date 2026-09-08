@@ -80,10 +80,10 @@ function Index() {
             <form
               className="mt-8 flex flex-col gap-2 rounded-xl bg-card p-2 sm:flex-row"
               onSubmit={(event) => {
-              event.preventDefault();
-              const term = query.trim();
-              navigate({ to: "/products", search: term ? { q: term } : {} });
-            }}
+                event.preventDefault();
+                const term = query.trim();
+                navigate({ to: "/products", search: term ? { q: term } : {} });
+              }}
             >
               <div className="flex flex-1 items-center gap-2 px-2">
                 <Search className="size-4 shrink-0 text-muted-foreground" />
@@ -131,7 +131,10 @@ function Index() {
         </p>
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {VALUE_ITEMS.map((item) => (
-            <div key={item.title} className="rounded-xl border border-border bg-card p-5 shadow-card">
+            <div
+              key={item.title}
+              className="rounded-xl border border-border bg-card p-5 shadow-card"
+            >
               <span className="grid size-10 place-items-center rounded-lg bg-secondary text-secondary-foreground">
                 <item.icon className="size-5" />
               </span>

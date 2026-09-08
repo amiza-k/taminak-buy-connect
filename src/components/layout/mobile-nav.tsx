@@ -15,7 +15,7 @@ export function MobileNav() {
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur md:hidden print:hidden">
-            <ul className="mx-auto flex max-w-6xl items-stretch">
+      <ul className="mx-auto flex max-w-6xl items-stretch">
         {ITEMS.map((item) => (
           <li key={item.to} className="flex-1">
             <Link

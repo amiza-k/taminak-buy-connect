@@ -14,7 +14,12 @@ export type CartItemRow = {
     is_available: boolean;
     supplier_organization_id: string;
     products: { id: string; name: string; unit: string | null; image_url: string | null } | null;
-    organizations: { id: string; name: string; city: string | null; province: string | null } | null;
+    organizations: {
+      id: string;
+      name: string;
+      city: string | null;
+      province: string | null;
+    } | null;
   } | null;
 };
 
@@ -165,10 +170,7 @@ export function useCartMutations() {
         if (error) throw error;
         return;
       }
-      const { error } = await supabase
-        .from("cart_items")
-        .update({ quantity })
-        .eq("id", itemId);
+      const { error } = await supabase.from("cart_items").update({ quantity }).eq("id", itemId);
       if (error) throw error;
     },
     onSuccess: invalidate,

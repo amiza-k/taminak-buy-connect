@@ -32,14 +32,9 @@ function SupplierLayout() {
 
   if (!organization || !isApproved) {
     return (
-      <PageShell
-        title="پنل فروشنده"
-        description="این بخش مخصوص تأمین‌کننده‌های تأیید شده است"
-      >
+      <PageShell title="پنل فروشنده" description="این بخش مخصوص تأمین‌کننده‌های تأیید شده است">
         <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center">
-          <p className="text-sm text-muted-foreground">
-            شما هنوز تأمین‌کننده تأیید شده‌ای نیستید.
-          </p>
+          <p className="text-sm text-muted-foreground">شما هنوز تأمین‌کننده تأیید شده‌ای نیستید.</p>
           <Button asChild className="mt-4">
             <Link to="/become-supplier">درخواست فروشندگی</Link>
           </Button>

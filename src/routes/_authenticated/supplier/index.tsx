@@ -28,15 +28,7 @@ function StatCard({ label, value, to }: { label: string; value: number; to: stri
   );
 }
 
-function QuickLink({
-  to,
-  icon: Icon,
-  label,
-}: {
-  to: string;
-  icon: typeof Package;
-  label: string;
-}) {
+function QuickLink({ to, icon: Icon, label }: { to: string; icon: typeof Package; label: string }) {
   return (
     <Link
       to={to}
@@ -55,7 +47,7 @@ function SupplierDashboardPage() {
   const counts = useQuery({ ...supplierOrderCountsQuery(orgId), enabled: Boolean(orgId) });
   const offers = useQuery({ ...supplierOffersQuery(orgId), enabled: Boolean(orgId) });
   const submissions = useQuery({ ...supplierSubmissionsQuery(orgId), enabled: Boolean(orgId) });
-  
+
   if (counts.isPending || offers.isPending || submissions.isPending) {
     return <LoadingState />;
   }
@@ -77,11 +69,27 @@ function SupplierDashboardPage() {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <StatCard label="سفارش‌های در انتظار" value={counts.data?.pending ?? 0} to="/supplier/orders" />
-        <StatCard label="سفارش‌های تأییدشده" value={counts.data?.confirmed ?? 0} to="/supplier/orders" />
-        <StatCard label="سفارش‌های تکمیل‌شده" value={counts.data?.completed ?? 0} to="/supplier/orders" />
+        <StatCard
+          label="سفارش‌های در انتظار"
+          value={counts.data?.pending ?? 0}
+          to="/supplier/orders"
+        />
+        <StatCard
+          label="سفارش‌های تأییدشده"
+          value={counts.data?.confirmed ?? 0}
+          to="/supplier/orders"
+        />
+        <StatCard
+          label="سفارش‌های تکمیل‌شده"
+          value={counts.data?.completed ?? 0}
+          to="/supplier/orders"
+        />
         <StatCard label="محصولات فعال" value={activeOffers} to="/supplier/products" />
-        <StatCard label="درخواست‌های در انتظار" value={pendingSubmissions} to="/supplier/submissions" />
+        <StatCard
+          label="درخواست‌های در انتظار"
+          value={pendingSubmissions}
+          to="/supplier/submissions"
+        />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

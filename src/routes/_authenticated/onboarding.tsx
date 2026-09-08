@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Building2, Check, Mail, MapPin, Pencil, Smartphone } from "lucide-react";
+import { Building2, Check, MapPin, Pencil, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 
 import { MapPicker, type LatLng } from "@/components/map/map-picker";
@@ -40,7 +40,7 @@ function VerificationButton({
   verified,
 }: {
   organizationId: string;
-  channel: "phone" | "email";
+  channel: "phone";
   verified: boolean;
 }) {
   const [code, setCode] = useState("");
@@ -169,9 +169,7 @@ function EditOrganizationDialog({
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl" dir="rtl">
         <DialogHeader>
           <DialogTitle>ویرایش مجموعه</DialogTitle>
-          <DialogDescription>
-            تغییر شماره تلفن یا ایمیل، نیاز به تأیید دوباره آن راه ارتباطی دارد.
-          </DialogDescription>
+          <DialogDescription>تغییر شماره تلفن، نیاز به تأیید دوباره آن دارد.</DialogDescription>
         </DialogHeader>
         <form
           className="space-y-4"
@@ -274,7 +272,7 @@ function OnboardingPage() {
       }
     },
     onSuccess: () => {
-      toast.success("کسب‌وکار ثبت شد؛ اکنون تلفن و ایمیل را تأیید کنید.");
+      toast.success("کسب‌وکار ثبت شد؛ اکنون تلفن را تأیید کنید.");
       setName("");
       setPhone("");
       setEmail("");
@@ -286,11 +284,8 @@ function OnboardingPage() {
       toast.error("ثبت کسب‌وکار ناموفق بود", { description: error.message }),
   });
   return (
-    <PageShell
-      title="کسب‌وکار من"
-      description="برای ثبت سفارش، یک لوکیشن با اطلاعات تماس تأییدشده بسازید"
-    >
-<div className="grid gap-6 lg:grid-cols-2">
+    <PageShell title="کسب‌وکار من" description="برای ثبت سفارش، یک لوکیشن با تلفن تأییدشده بسازید">
+      <div className="grid gap-6 lg:grid-cols-2">
         <Card className="shadow-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
@@ -298,7 +293,7 @@ function OnboardingPage() {
               مجموعه‌های من
             </CardTitle>
             <CardDescription>
-              فقط لوکیشن‌های دارای تلفن و ایمیل تأییدشده برای سفارش استفاده می‌شوند.
+              فقط لوکیشن‌های دارای تلفن تأییدشده برای سفارش استفاده می‌شوند.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -345,17 +340,6 @@ function OnboardingPage() {
                             organizationId={m.organization_id}
                             channel="phone"
                             verified={m.organizations.phone_verified}
-                          />
-                        </div>
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="flex items-center gap-1">
-                            <Mail className="size-4" />
-                            ایمیل
-                          </span>
-                          <VerificationButton
-                            organizationId={m.organization_id}
-                            channel="email"
-                            verified={m.organizations.email_verified}
                           />
                         </div>
                       </div>

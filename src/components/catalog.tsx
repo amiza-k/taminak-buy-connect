@@ -5,7 +5,12 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatNumber, formatToman, toFaDigits } from "@/lib/format";
-import { lowestAvailablePrice, type Offer, type ProductWithOffers, type SupplierSummary } from "@/lib/catalog";
+import {
+  lowestAvailablePrice,
+  type Offer,
+  type ProductWithOffers,
+  type SupplierSummary,
+} from "@/lib/catalog";
 import { useAuth } from "@/hooks/use-auth";
 import { useBuyerOrganization, useCartMutations } from "@/lib/cart";
 
@@ -49,9 +54,7 @@ export function RatingBadge({
   className?: string;
 }) {
   if (rating === null || count === 0) {
-    return (
-      <span className={`text-xs text-muted-foreground ${className ?? ""}`}>بدون امتیاز</span>
-    );
+    return <span className={`text-xs text-muted-foreground ${className ?? ""}`}>بدون امتیاز</span>;
   }
   return (
     <span className={`inline-flex items-center gap-1 text-xs ${className ?? ""}`}>

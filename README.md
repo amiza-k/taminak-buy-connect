@@ -91,7 +91,6 @@ Future conceptual architecture:
                             ▼
                        Shared Supabase
 
-
 Do NOT build this future system now.
 
 3. EXISTING SUPABASE BACKEND — CRITICAL
@@ -100,7 +99,6 @@ This Lovable project MUST use the existing Supabase project:
 
 Project ID:
 enkfqibbetabpweysema
-
 
 The backend is already created and the database migrations have already been executed.
 
@@ -130,7 +128,6 @@ profiles
 organizations
 memberships
 
-
 Marketplace
 
 products
@@ -140,14 +137,12 @@ cart_items
 orders
 order_items
 
-
 Marketplace extensions
 
 platform_admins
 supplier_applications
 product_submissions
 reviews
-
 
 The database also contains server-side functions such as:
 
@@ -158,7 +153,6 @@ is_platform_admin
 create_organization_with_owner
 approve_supplier_application
 approve_product_submission
-
 
 Treat all of these as existing backend infrastructure.
 
@@ -253,13 +247,12 @@ another authentication provider
 The identity architecture is:
 
 Supabase Auth
-     ↓
+↓
 profiles
-     ↓
+↓
 memberships
-     ↓
+↓
 organizations
-
 
 Meaning:
 
@@ -278,10 +271,9 @@ A person can have different roles in different organizations.
 Example:
 
 Ali
- ├── owner → Restaurant A
- ├── purchasing_manager → Restaurant B
- └── supplier_admin → Supplier C
-
+├── owner → Restaurant A
+├── purchasing_manager → Restaurant B
+└── supplier_admin → Supplier C
 
 The frontend must NOT assume:
 
@@ -296,11 +288,9 @@ For the MVP:
 restaurant
 supplier
 
-
 A café is represented as:
 
 organization.type = "restaurant"
-
 
 Do NOT introduce a separate cafe organization type.
 
@@ -338,7 +328,6 @@ Use the existing:
 
 create_organization_with_owner
 
-
 function rather than manually inserting the first owner membership from the browser.
 
 10. BUYER REGISTRATION
@@ -346,7 +335,6 @@ function rather than manually inserting the first owner membership from the brow
 Primary registration:
 
 ثبت‌نام
-
 
 Collect only basic personal account information.
 
@@ -365,13 +353,12 @@ unless needed for placing an order.
 The initial experience should be:
 
 ثبت‌نام
-   ↓
+↓
 حساب شخصی
-   ↓
+↓
 انتخاب استان و شهر
-   ↓
+↓
 Marketplace
-
 
 11. LOCATION EXPERIENCE
 
@@ -418,7 +405,6 @@ Use the existing organization fields:
 province
 city
 address
-
 
 12. BUYER HOME PAGE
 
@@ -486,20 +472,17 @@ There are two different concepts:
 
 Product
 
-
 and:
 
 Supplier Product
 
-
 The relationship is:
 
 Product
-   │
-   ├── Supplier A offer
-   ├── Supplier B offer
-   └── Supplier C offer
-
+│
+├── Supplier A offer
+├── Supplier B offer
+└── Supplier C offer
 
 Example:
 
@@ -508,7 +491,6 @@ Example:
 Supplier A → 1,200,000 تومان
 Supplier B → 1,150,000 تومان
 Supplier C → 1,350,000 تومان
-
 
 A canonical Product must NOT be created separately for every supplier.
 
@@ -521,27 +503,24 @@ Suppliers should NOT directly create canonical marketplace products.
 Instead:
 
 Supplier
-   ↓
+↓
 Product submission
-   ↓
+↓
 Admin review
-   ↓
+↓
 Approval
-   ↓
+↓
 Canonical Product + Supplier Product
-
 
 Use the existing:
 
 product_submissions
-
 
 table.
 
 Use the existing:
 
 approve_product_submission
-
 
 function.
 
@@ -550,7 +529,6 @@ Submission statuses:
 pending
 approved
 rejected
-
 
 The supplier can see the status of their submissions.
 
@@ -565,36 +543,31 @@ Supplier onboarding must be a separate secondary path:
 فروشنده هستید؟
 [ درخواست فروشندگی ]
 
-
 Recommended route:
 
 /become-supplier
 
-
 Flow:
 
 Personal account
-    ↓
+↓
 Supplier Application
-    ↓
+↓
 Business information
-    ↓
+↓
 Submit application
-    ↓
+↓
 Pending review
-    ↓
+↓
 Admin approval/rejection
-
 
 Use:
 
 supplier_applications
 
-
 and:
 
 approve_supplier_application
-
 
 The supplier application should collect:
 
@@ -635,20 +608,18 @@ automated legal verification
 The workflow is simply:
 
 Application
-   ↓
+↓
 Admin Review
-   ↓
+↓
 Approve / Reject
-
 
 After approval:
 
 Supplier Organization
-       ↓
+↓
 supplier_admin Membership
-       ↓
+↓
 Supplier Dashboard
-
 
 18. SUPPLIER DASHBOARD
 
@@ -661,7 +632,6 @@ Approved suppliers should have:
 /supplier/orders
 /supplier/orders/:id
 /supplier/profile
-
 
 Keep it simple.
 
@@ -712,18 +682,15 @@ A review contains:
 rating: 1 to 5
 comment: optional
 
-
 Display supplier rating like:
 
 ★★★★★ 4.7
 ۱۲۳ نظر
 
-
 Basic review list:
 
 ★★★★★
 خرید خوبی بود و کیفیت محصول مطابق توضیحات بود.
-
 
 Do NOT implement:
 
@@ -779,7 +746,6 @@ Example:
 موجود
 [افزودن به سبد]
 
-
 The buyer must choose the specific supplier offer.
 
 22. CART MODEL
@@ -791,11 +757,10 @@ A single cart MAY contain products from multiple suppliers.
 Example:
 
 Cart
- ├── Coffee → Supplier A
- ├── Milk → Supplier B
- ├── Syrup → Supplier A
- └── Chocolate → Supplier C
-
+├── Coffee → Supplier A
+├── Milk → Supplier B
+├── Syrup → Supplier A
+└── Chocolate → Supplier C
 
 This is an intentional marketplace behavior.
 
@@ -806,29 +771,27 @@ At checkout, group cart items by supplier.
 Example:
 
 Cart
- ├── Supplier A
- │    ├── Coffee
- │    └── Syrup
- │
- ├── Supplier B
- │    └── Milk
- │
- └── Supplier C
-      └── Chocolate
-
+├── Supplier A
+│ ├── Coffee
+│ └── Syrup
+│
+├── Supplier B
+│ └── Milk
+│
+└── Supplier C
+└── Chocolate
 
 When the buyer submits the checkout:
 
 Cart
-   ↓
+↓
 Group by supplier
-   ↓
+↓
 Create supplier-specific orders
 
 Order A → Supplier A
 Order B → Supplier B
 Order C → Supplier C
-
 
 The existing orders.supplier_organization_id remains the source of truth.
 
@@ -856,7 +819,6 @@ Then:
 
 ثبت سفارش
 
-
 No online payment in MVP.
 
 No delivery fee calculation.
@@ -870,21 +832,21 @@ No logistics engine.
 After submitting an order:
 
 Buyer
- ↓
+↓
 Order created
- ↓
+↓
 Supplier sees the order
- ↓
+↓
 Supplier contacts buyer
- ↓
+↓
 They agree on:
-   - payment method
-   - delivery method
-   - delivery cost
-   - final fulfillment details
- ↓
-Purchase is completed
 
+- payment method
+- delivery method
+- delivery cost
+- final fulfillment details
+  ↓
+  Purchase is completed
 
 This is intentional MVP behavior.
 
@@ -900,21 +862,18 @@ rejected
 completed
 cancelled
 
-
 Typical flow:
 
 pending
-   ↓
+↓
 confirmed
-   ↓
+↓
 completed
-
 
 Alternative outcomes:
 
 pending → rejected
 pending → cancelled
-
 
 Do not introduce shipment-specific statuses.
 
@@ -923,7 +882,6 @@ Do not introduce shipment-specific statuses.
 Historical order prices are stored in:
 
 order_items.unit_price
-
 
 Never recalculate old orders using the current supplier product price.
 
@@ -935,16 +893,13 @@ Coffee = 1,200,000
 Later current supplier price:
 Coffee = 1,350,000
 
-
 The old order must remain:
 
 1,200,000
 
-
 Also use:
 
 order_items.product_name
-
 
 as the historical product-name snapshot.
 
@@ -953,7 +908,6 @@ as the historical product-name snapshot.
 Use the existing:
 
 platform_admins
-
 
 table.
 
@@ -976,7 +930,6 @@ Admin routes:
 /admin/products
 /admin/product-submissions
 /admin/orders
-
 
 Admin access must be protected.
 
@@ -1112,11 +1065,9 @@ Do NOT store formatted strings such as:
 
 "1,250,000 تومان"
 
-
 Store:
 
 1250000
-
 
 Display formatting in the UI.
 
@@ -1203,14 +1154,12 @@ Public
 /suppliers/:id
 /become-supplier
 
-
 Buyer
 
 /cart
 /checkout
 /orders
 /orders/:id
-
 
 Supplier
 
@@ -1223,7 +1172,6 @@ Supplier
 /supplier/orders/:id
 /supplier/profile
 
-
 Admin
 
 /admin
@@ -1231,7 +1179,6 @@ Admin
 /admin/products
 /admin/product-submissions
 /admin/orders
-
 
 Use protected routes according to auth and authorization.
 
@@ -1398,13 +1345,12 @@ Taminak must remain compatible with future integration of the existing MoteKitch
 Future shared identity:
 
 auth.users
-    ↓
+↓
 profiles
-    ↓
+↓
 memberships
-    ↓
+↓
 organizations
-
 
 The future Restaurant Operations domain may introduce:
 
@@ -1415,25 +1361,23 @@ approvals
 inventory
 tasks
 
-
 Those features should reference organizations and users separately.
 
 Future workflow:
 
 Restaurant Staff
-      ↓
+↓
 Purchase Request
-      ↓
+↓
 Manager Approval
-      ↓
+↓
 Taminak Marketplace
-      ↓
+↓
 Supplier Comparison
-      ↓
+↓
 Supplier-Specific Order
-      ↓
+↓
 Supplier
-
 
 Do not implement this workflow now.
 
@@ -1516,21 +1460,20 @@ not feature count.
 The core marketplace loop is:
 
 Buyer
- ↓
+↓
 Discover
- ↓
+↓
 Compare
- ↓
+↓
 Trust
- ↓
+↓
 Cart
- ↓
+↓
 Orders
- ↓
+↓
 Supplier Contact
- ↓
+↓
 Fulfillment
-
 
 Build this loop well before expanding the product.
 

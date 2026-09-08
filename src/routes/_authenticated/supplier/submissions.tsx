@@ -3,7 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 
 import { Badge } from "@/components/ui/badge";
 import { EmptyState, ErrorState, LoadingState } from "@/components/catalog";
-import { useSupplierMembership, supplierSubmissionsQuery, SUBMISSION_STATUS_LABELS } from "@/lib/supplier";
+import {
+  useSupplierMembership,
+  supplierSubmissionsQuery,
+  SUBMISSION_STATUS_LABELS,
+} from "@/lib/supplier";
 import { formatDate, formatToman } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/supplier/submissions")({
@@ -15,7 +19,7 @@ function SupplierSubmissionsPage() {
   const { organization } = useSupplierMembership();
   const orgId = organization?.id ?? null;
   const query = useQuery({ ...supplierSubmissionsQuery(orgId), enabled: Boolean(orgId) });
-  
+
   if (query.isPending) return <LoadingState />;
   if (query.isError) return <ErrorState onRetry={() => query.refetch()} />;
 

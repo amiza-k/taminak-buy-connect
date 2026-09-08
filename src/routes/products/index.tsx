@@ -8,7 +8,12 @@ import { PageShell } from "@/components/page-shell";
 import { LocationPicker } from "@/components/location-picker";
 import { EmptyState, ErrorState, LoadingState, ProductCard } from "@/components/catalog";
 import { CategoryProductSection, CategorySectionSkeleton } from "@/components/marketplace-sections";
-import { matchesLocation, productsQuery, groupProductsByCategory, type ProductWithOffers } from "@/lib/catalog";
+import {
+  matchesLocation,
+  productsQuery,
+  groupProductsByCategory,
+  type ProductWithOffers,
+} from "@/lib/catalog";
 import { categoriesQuery } from "@/lib/categories";
 import { useMarketLocation } from "@/hooks/use-location";
 import { formatNumber } from "@/lib/format";
@@ -17,9 +22,9 @@ type ProductSearch = { q?: string; category?: string };
 
 export const Route = createFileRoute("/products/")({
   validateSearch: (search: Record<string, unknown>): ProductSearch => ({
-    ...(typeof search['q'] === "string" && search['q'] ? { q: search['q'] } : {}),
-    ...(typeof search['category'] === "string" && search['category']
-      ? { category: search['category'] }
+    ...(typeof search["q"] === "string" && search["q"] ? { q: search["q"] } : {}),
+    ...(typeof search["category"] === "string" && search["category"]
+      ? { category: search["category"] }
       : {}),
   }),
   head: () => ({
@@ -78,7 +83,8 @@ function ProductsPage() {
   }, [query.data, location]);
 
   const activeCategory = useMemo(
-    () => (category ? (categoriesResult.data ?? []).find((c) => c.id === category) ?? null : null),
+    () =>
+      category ? ((categoriesResult.data ?? []).find((c) => c.id === category) ?? null) : null,
     [category, categoriesResult.data],
   );
 

@@ -89,7 +89,7 @@ function AdminProductDetailPage() {
     );
   }
 
-    function handleDelete() {
+  function handleDelete() {
     if (!window.confirm("این محصول برای همیشه حذف می‌شود. ادامه می‌دهید؟")) return;
     deleteProduct.mutate(productId, {
       onSuccess: () => {
@@ -106,8 +106,8 @@ function AdminProductDetailPage() {
   return (
     <div className="max-w-xl space-y-4">
       <p className="text-sm text-muted-foreground">
-        {formatNumber(offerCount.data ?? 0)} تأمین‌کننده این محصول را عرضه می‌کنند. قیمت، موجودی
-        و رسانه هر تأمین‌کننده از این فرم قابل تغییر نیست.
+        {formatNumber(offerCount.data ?? 0)} تأمین‌کننده این محصول را عرضه می‌کنند. قیمت، موجودی و
+        رسانه هر تأمین‌کننده از این فرم قابل تغییر نیست.
       </p>
 
       <form
@@ -120,7 +120,12 @@ function AdminProductDetailPage() {
         </div>
         <div className="space-y-2">
           <Label htmlFor="ep-desc">توضیحات</Label>
-          <Textarea id="ep-desc" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
+          <Textarea
+            id="ep-desc"
+            rows={3}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
@@ -150,7 +155,12 @@ function AdminProductDetailPage() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="ep-image">آدرس تصویر</Label>
-            <Input id="ep-image" dir="ltr" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
+            <Input
+              id="ep-image"
+              dir="ltr"
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+            />
           </div>
         </div>
         <div className="flex items-center gap-2">

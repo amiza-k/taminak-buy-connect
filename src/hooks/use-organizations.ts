@@ -15,7 +15,7 @@ export type MembershipWithOrg = {
     province: string | null;
     city: string | null;
     supplier_status: string | null;
-        phone_verified: boolean;
+    phone_verified: boolean;
     email_verified: boolean;
     phone: string | null;
     email: string | null;

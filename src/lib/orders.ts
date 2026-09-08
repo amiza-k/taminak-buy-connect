@@ -302,7 +302,11 @@ export function useUpdateOrderStatus() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (input: { orderId: string; status: string; supplierOrganizationId: string }) => {
+    mutationFn: async (input: {
+      orderId: string;
+      status: string;
+      supplierOrganizationId: string;
+    }) => {
       const { data, error } = await supabase.rpc("update_order_status", {
         p_order_id: input.orderId,
         p_status: input.status,

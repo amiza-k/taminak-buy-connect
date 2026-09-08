@@ -50,7 +50,9 @@ function BuyerInvoicesPage() {
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <Badge variant="secondary">{ORDER_STATUS_LABELS[order.status] ?? order.status}</Badge>
+                <Badge variant="secondary">
+                  {ORDER_STATUS_LABELS[order.status] ?? order.status}
+                </Badge>
                 <p className="font-bold text-primary">{formatToman(order.total)}</p>
                 <Link
                   to="/orders/$orderId"

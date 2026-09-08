@@ -15,9 +15,7 @@ import {
 } from "@/lib/admin";
 import { formatDate } from "@/lib/format";
 
-export const Route = createFileRoute(
-  "/_authenticated/admin/supplier-applications/$applicationId",
-)({
+export const Route = createFileRoute("/_authenticated/admin/supplier-applications/$applicationId")({
   head: () => ({ meta: [{ title: "جزئیات درخواست فروشندگی | پنل مدیریت" }] }),
   component: AdminSupplierApplicationDetailPage,
 });
@@ -56,15 +54,21 @@ function AdminSupplierApplicationDetailPage() {
         </div>
         <div>
           <p className="text-muted-foreground">تلفن</p>
-          <p className="mt-1 font-medium" dir="ltr">{application.phone ?? "—"}</p>
+          <p className="mt-1 font-medium" dir="ltr">
+            {application.phone ?? "—"}
+          </p>
         </div>
         <div>
           <p className="text-muted-foreground">ایمیل</p>
-          <p className="mt-1 font-medium" dir="ltr">{application.email ?? "—"}</p>
+          <p className="mt-1 font-medium" dir="ltr">
+            {application.email ?? "—"}
+          </p>
         </div>
         <div>
           <p className="text-muted-foreground">استان و شهر</p>
-          <p className="mt-1 font-medium">{application.province} — {application.city}</p>
+          <p className="mt-1 font-medium">
+            {application.province} — {application.city}
+          </p>
         </div>
         <div className="col-span-2">
           <p className="text-muted-foreground">آدرس</p>

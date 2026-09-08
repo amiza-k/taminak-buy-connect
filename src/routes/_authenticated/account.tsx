@@ -19,7 +19,10 @@ export const Route = createFileRoute("/_authenticated/account")({
 
 function AccountRow({ to, icon: Icon, label }: { to: string; icon: typeof User; label: string }) {
   return (
-    <Link to={to} className="flex items-center gap-3 rounded-lg border border-border p-4 text-sm hover:bg-muted">
+    <Link
+      to={to}
+      className="flex items-center gap-3 rounded-lg border border-border p-4 text-sm hover:bg-muted"
+    >
       <Icon className="size-4 text-primary" />
       {label}
     </Link>
@@ -60,7 +63,10 @@ function AccountPage() {
           ) : (
             <div className="rounded-xl border border-dashed border-border bg-card p-5">
               <p className="text-sm text-muted-foreground">محصولات خود را در تأمینک عرضه کنید.</p>
-              <Link to="/become-supplier" className="mt-3 inline-block text-sm font-medium text-primary hover:underline">
+              <Link
+                to="/become-supplier"
+                className="mt-3 inline-block text-sm font-medium text-primary hover:underline"
+              >
                 فروشنده شوید
               </Link>
             </div>

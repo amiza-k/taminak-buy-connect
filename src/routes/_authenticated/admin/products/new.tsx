@@ -75,7 +75,12 @@ function NewAdminProductPage() {
       </div>
       <div className="space-y-2">
         <Label htmlFor="ap-desc">توضیحات</Label>
-        <Textarea id="ap-desc" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
+        <Textarea
+          id="ap-desc"
+          rows={3}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
@@ -101,11 +106,21 @@ function NewAdminProductPage() {
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
           <Label htmlFor="ap-unit">واحد</Label>
-          <Input id="ap-unit" placeholder="کیلوگرم" value={unit} onChange={(e) => setUnit(e.target.value)} />
+          <Input
+            id="ap-unit"
+            placeholder="کیلوگرم"
+            value={unit}
+            onChange={(e) => setUnit(e.target.value)}
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="ap-image">آدرس تصویر</Label>
-          <Input id="ap-image" dir="ltr" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
+          <Input
+            id="ap-image"
+            dir="ltr"
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+          />
         </div>
       </div>
       <div className="flex items-center gap-2">

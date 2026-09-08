@@ -16,13 +16,14 @@ type SupplierSearch = { q?: string };
 
 export const Route = createFileRoute("/suppliers/")({
   validateSearch: (search: Record<string, unknown>): SupplierSearch =>
-    typeof search['q'] === "string" && search['q'] ? { q: search['q'] } : {},
+    typeof search["q"] === "string" && search["q"] ? { q: search["q"] } : {},
   head: () => ({
     meta: [
       { title: "تأمین‌کننده‌های کافه و رستوران | تأمینک" },
       {
         name: "description",
-        content: "فهرست تأمین‌کننده‌های مواد اولیه کافه و رستوران به همراه موقعیت و امتیاز خریداران.",
+        content:
+          "فهرست تأمین‌کننده‌های مواد اولیه کافه و رستوران به همراه موقعیت و امتیاز خریداران.",
       },
       { property: "og:title", content: "تأمین‌کننده‌ها | تأمینک" },
       {
@@ -102,7 +103,9 @@ function SuppliersPage() {
         <ErrorState onRetry={() => query.refetch()} />
       ) : storefronts.length === 0 ? (
         <EmptyState
-          label={q ? "تأمین‌کننده‌ای با این نام پیدا نشد." : "تأمین‌کننده‌ای در این محدوده پیدا نشد."}
+          label={
+            q ? "تأمین‌کننده‌ای با این نام پیدا نشد." : "تأمین‌کننده‌ای در این محدوده پیدا نشد."
+          }
         />
       ) : (
         <div className="space-y-10">

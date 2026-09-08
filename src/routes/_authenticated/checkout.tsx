@@ -115,15 +115,11 @@ function CheckoutPage() {
   }
 
   const cartId = cart.data?.cartId;
-  
+
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     if (!cartId || !organization) return;
-    if (
-      !organization.phone_verified ||
-      !organization.address ||
-      !organization.phone
-    ) {
+    if (!organization.phone_verified || !organization.address || !organization.phone) {
       toast.error("برای ثبت سفارش، تلفن و آدرس کسب‌وکار باید تأیید و تکمیل شده باشد.");
       return;
     }
@@ -192,7 +188,7 @@ function CheckoutPage() {
             <div className="rounded-lg border border-border bg-secondary/30 p-4 text-sm">
               <div className="mb-2 flex items-center justify-between">
                 <p className="font-medium">لوکیشن دریافت سفارش</p>
-                {organization.phone_verified && organization.email_verified ? (
+                {organization.phone_verified ? (
                   <Badge variant="secondary">تأیید شده</Badge>
                 ) : (
                   <Badge variant="destructive">نیازمند تأیید</Badge>
@@ -246,7 +242,7 @@ function CheckoutPage() {
               !organization.phone
             }
           >
-          {checkout.isPending ? "در حال ثبت سفارش…" : "ثبت نهایی سفارش"}
+            {checkout.isPending ? "در حال ثبت سفارش…" : "ثبت نهایی سفارش"}
           </Button>
         </aside>
       </div>

@@ -115,11 +115,13 @@ function AuthenticatedBecomeSupplier() {
         <div className="mb-6 rounded-xl border border-destructive/30 bg-destructive/5 p-5">
           <p className="text-sm text-destructive">درخواست «{application.business_name}» رد شد.</p>
           {application.rejection_reason ? (
-            <p className="mt-2 text-sm text-muted-foreground">دلیل: {application.rejection_reason}</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              دلیل: {application.rejection_reason}
+            </p>
           ) : null}
         </div>
         <SupplierApplicationForm />
-              </PageShell>
+      </PageShell>
     );
   }
 
@@ -129,7 +131,7 @@ function AuthenticatedBecomeSupplier() {
       description="اطلاعات کسب‌وکار خود را ثبت کنید تا پس از بررسی، فروشگاه شما فعال شود"
     >
       <SupplierApplicationForm />
-          </PageShell>
+    </PageShell>
   );
 }
 
@@ -176,7 +178,12 @@ function SupplierApplicationForm() {
     >
       <div className="space-y-2">
         <Label htmlFor="biz-name">نام کسب‌وکار</Label>
-        <Input id="biz-name" required value={businessName} onChange={(e) => setBusinessName(e.target.value)} />
+        <Input
+          id="biz-name"
+          required
+          value={businessName}
+          onChange={(e) => setBusinessName(e.target.value)}
+        />
       </div>
       <div className="space-y-2">
         <Label htmlFor="owner-name">نام مسئول کسب‌وکار</Label>
@@ -185,11 +192,22 @@ function SupplierApplicationForm() {
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
           <Label htmlFor="biz-phone">تلفن</Label>
-          <Input id="biz-phone" dir="ltr" value={phone} onChange={(e) => setPhone(e.target.value)} />
+          <Input
+            id="biz-phone"
+            dir="ltr"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="biz-email">ایمیل</Label>
-          <Input id="biz-email" type="email" dir="ltr" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <Input
+            id="biz-email"
+            type="email"
+            dir="ltr"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
@@ -236,7 +254,12 @@ function SupplierApplicationForm() {
       </div>
       <div className="space-y-2">
         <Label htmlFor="biz-desc">توضیحات کسب‌وکار (اختیاری)</Label>
-        <Textarea id="biz-desc" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
+        <Textarea
+          id="biz-desc"
+          rows={3}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
       </div>
       <Button type="submit" className="w-full" disabled={submit.isPending}>
         {submit.isPending ? "در حال ثبت…" : "ثبت درخواست فروشندگی"}

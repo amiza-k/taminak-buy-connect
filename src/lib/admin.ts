@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import type { TablesUpdate } from "@/integrations/supabase/types";
 
-
 /* -------------------------------------------------------------- */
 /* Platform admin check                                            */
 /* -------------------------------------------------------------- */
