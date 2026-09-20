@@ -134,13 +134,8 @@ function CheckoutPage() {
       {
         onSuccess: (data) => setResult(data),
         onError: (error: Error) => {
-          const message =
-            error.message === "Cart is empty"
-              ? "سبد خرید شما خالی است."
-              : error.message === "One or more cart items are no longer available"
-                ? "یکی از محصولات سبد خرید دیگر موجود نیست. لطفاً سبد خرید را بررسی کنید."
-                : "ثبت سفارش انجام نشد. لطفاً دوباره تلاش کنید.";
-          toast.error(message);
+          console.error("Checkout failed", error);
+          toast.error(getCheckoutErrorMessage(error));
         },
       },
     );
@@ -248,4 +243,25 @@ function CheckoutPage() {
       </div>
     </PageShell>
   );
+}
+
+function getCheckoutErrorMessage(error: Error): string {
+  const messages: Record<string, string> = {
+    "Authentication required": "برای ثبت سفارش، دوباره وارد حساب کاربری خود شوید.",
+    "Cart not found": "سبد خرید پیدا نشد. لطفاً صفحه را تازه‌سازی کنید.",
+    "Cart is not active": "این سبد قبلاً ثبت شده است. لطفاً به سفارش‌ها مراجعه کنید.",
+    "Cart is empty": "سبد خرید شما خالی است.",
+    "Not authorized for this cart": "شما به این سبد خرید دسترسی ندارید.",
+    "One or more cart items are no longer available":
+      "یکی از محصولات سبد خرید دیگر موجود نیست. لطفاً سبد خرید را بررسی کنید.",
+    "Delivery address is required": "آدرس دریافت سفارش را تکمیل کنید.",
+    "Contact phone is required": "شماره تلفن دریافت سفارش را تکمیل کنید.",
+    "Organization phone and address must be verified before checkout":
+      "تلفن و آدرس کسب‌وکار را تکمیل و تأیید کنید.",
+    "Organization contact and address must be verified before checkout":
+      "تلفن و آدرس کسب‌وکار را تکمیل و تأیید کنید.",
+    "stack depth limit exceeded": "خطای ثبت سفارش برطرف شد؛ لطفاً دوباره تلاش کنید.",
+  };
+
+  return messages[error.message] ?? `ثبت سفارش انجام نشد: ${error.message || "خطای نامشخص"}`;
 }
