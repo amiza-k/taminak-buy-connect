@@ -1,13 +1,12 @@
-import { LeafletMapPicker } from "./leaflet-map-picker";
+import { NeshanMapPicker } from "./neshan-map-picker";
 import type { MapPickerProps } from "./types";
 
 export type { LatLng, MapPickerProps } from "./types";
 
 /**
- * Provider-agnostic map picker. Currently backed by Leaflet/OpenStreetMap
- * (no API key needed). To switch providers later (e.g. Neshan, Google),
- * swap the implementation here -- callers never change.
+ * Provider-agnostic map picker backed by Neshan's Leaflet-compatible web SDK.
+ * Keeping this facade means callers remain independent of the map provider.
  */
 export function MapPicker(props: MapPickerProps) {
-  return <LeafletMapPicker {...props} />;
+  return <NeshanMapPicker {...props} />;
 }
