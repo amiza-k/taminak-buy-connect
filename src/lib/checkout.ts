@@ -13,16 +13,14 @@ export type CheckoutResult = {
 export type CheckoutInput = {
   cartId: string;
   organizationId: string;
-  deliveryAddress: string;
-  contactPhone: string;
+  deliveryOrganizationId: string;
   note?: string;
 };
 
 async function checkoutCart(input: CheckoutInput): Promise<CheckoutResult[]> {
   const { data, error } = await supabase.rpc("checkout_cart", {
     p_cart_id: input.cartId,
-    p_delivery_address: input.deliveryAddress,
-    p_contact_phone: input.contactPhone,
+    p_delivery_organization_id: input.deliveryOrganizationId,
     ...(input.note ? { p_note: input.note } : {}),
   });
   if (error) throw error;

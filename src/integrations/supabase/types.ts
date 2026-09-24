@@ -858,8 +858,7 @@ export type Database = {
       checkout_cart: {
         Args: {
           p_cart_id: string;
-          p_contact_phone: string;
-          p_delivery_address: string;
+          p_delivery_organization_id: string;
           p_note?: string;
         };
         Returns: {

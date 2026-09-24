@@ -7,11 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { PageShell } from "@/components/page-shell";
 import { EmptyState, ErrorState, LoadingState } from "@/components/catalog";
 import { useBuyerOrganization, useCart, cartTotals, groupBySupplier } from "@/lib/cart";
 import { useCheckout, type CheckoutResult } from "@/lib/checkout";
 import { formatNumber, formatToman } from "@/lib/format";
+import { useMyMemberships } from "@/hooks/use-organizations";
 
 export const Route = createFileRoute("/_authenticated/checkout")({
   head: () => ({
@@ -25,15 +27,32 @@ export const Route = createFileRoute("/_authenticated/checkout")({
 
 function CheckoutPage() {
   const { organization, isPending: orgPending } = useBuyerOrganization();
+  const memberships = useMyMemberships();
   const cart = useCart();
   const checkout = useCheckout();
 
   const [note, setNote] = useState("");
+  const [deliveryOrganizationId, setDeliveryOrganizationId] = useState("");
   const [result, setResult] = useState<CheckoutResult[] | null>(null);
 
-  const items = cart.data?.items ?? [];
+  const items = useMemo(() => cart.data?.items ?? [], [cart.data?.items]);
   const groups = useMemo(() => groupBySupplier(items), [items]);
   const totals = cartTotals(items);
+  const deliveryLocations = useMemo(
+    () =>
+      (memberships.data ?? [])
+        .map((membership) => membership.organizations)
+        .filter(
+          (location): location is NonNullable<typeof location> => location?.type !== "supplier",
+        ),
+    [memberships.data],
+  );
+  const selectedLocation = deliveryLocations.find(
+    (location) => location.id === deliveryOrganizationId,
+  );
+  const isSelectedLocationReady = Boolean(
+    selectedLocation?.phone_verified && selectedLocation.address && selectedLocation.phone,
+  );
 
   if (result) {
     return (
@@ -75,7 +94,7 @@ function CheckoutPage() {
     );
   }
 
-  if (orgPending || cart.isPending) {
+  if (orgPending || memberships.isPending || cart.isPending) {
     return (
       <PageShell title="ثبت سفارش">
         <LoadingState />
@@ -119,23 +138,31 @@ function CheckoutPage() {
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     if (!cartId || !organization) return;
-    if (!organization.phone_verified || !organization.address || !organization.phone) {
-      toast.error("برای ثبت سفارش، تلفن و آدرس کسب‌وکار باید تأیید و تکمیل شده باشد.");
+    if (!deliveryOrganizationId) {
+      toast.error("لطفاً لوکیشن دریافت سفارش را انتخاب کنید.");
+      return;
+    }
+    if (!isSelectedLocationReady) {
+      toast.error("لوکیشن انتخاب‌شده باید تلفن تأییدشده و آدرس کامل داشته باشد.");
       return;
     }
     checkout.mutate(
       {
         cartId,
         organizationId: organization.id,
-        deliveryAddress: organization.address,
-        contactPhone: organization.phone,
+        deliveryOrganizationId,
         ...(note.trim() ? { note: note.trim() } : {}),
       },
       {
         onSuccess: (data) => setResult(data),
         onError: (error: Error) => {
-          console.error("Checkout failed", error);
-          toast.error(getCheckoutErrorMessage(error));
+          const message =
+            error.message === "Cart is empty"
+              ? "سبد خرید شما خالی است."
+              : error.message === "One or more cart items are no longer available"
+                ? "یکی از محصولات سبد خرید دیگر موجود نیست. لطفاً سبد خرید را بررسی کنید."
+                : "ثبت سفارش انجام نشد. لطفاً دوباره تلاش کنید.";
+          toast.error(message);
         },
       },
     );
@@ -180,29 +207,59 @@ function CheckoutPage() {
             onSubmit={handleSubmit}
             className="space-y-4 rounded-xl border border-border bg-card p-5 shadow-card"
           >
-            <div className="rounded-lg border border-border bg-secondary/30 p-4 text-sm">
+            <fieldset className="space-y-3">
               <div className="mb-2 flex items-center justify-between">
-                <p className="font-medium">لوکیشن دریافت سفارش</p>
-                {organization.phone_verified ? (
-                  <Badge variant="secondary">تأیید شده</Badge>
-                ) : (
-                  <Badge variant="destructive">نیازمند تأیید</Badge>
-                )}
+                <legend className="font-medium">لوکیشن دریافت سفارش</legend>
+                <span className="text-xs text-muted-foreground">یک لوکیشن را انتخاب کنید</span>
               </div>
-              <p>{organization.name}</p>
-              <p className="mt-1 text-muted-foreground">
-                {organization.address ?? "آدرس ثبت نشده"}
-              </p>
-              <p className="mt-1 text-muted-foreground" dir="ltr">
-                {organization.phone ?? "تلفن ثبت نشده"}
-              </p>
-              {(!organization.phone_verified || !organization.address || !organization.phone) && (
-                <p className="mt-3 text-destructive">
-                  این لوکیشن هنوز برای سفارش آماده نیست؛ آن را از بخش کسب‌وکار من تکمیل و تأیید
-                  کنید.
+              <RadioGroup
+                value={deliveryOrganizationId}
+                onValueChange={setDeliveryOrganizationId}
+                aria-label="لوکیشن دریافت سفارش"
+              >
+                {deliveryLocations.map((location) => {
+                  const ready = location.phone_verified && location.address && location.phone;
+                  return (
+                    <label
+                      key={location.id}
+                      htmlFor={`delivery-location-${location.id}`}
+                      className="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-secondary/30 p-4 transition-colors has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5"
+                    >
+                      <RadioGroupItem
+                        id={`delivery-location-${location.id}`}
+                        value={location.id}
+                        className="mt-1 shrink-0"
+                        disabled={!ready}
+                      />
+                      <span className="min-w-0 flex-1">
+                        <span className="flex flex-wrap items-center gap-2">
+                          <span className="font-medium">{location.name}</span>
+                          <Badge variant={ready ? "secondary" : "destructive"}>
+                            {ready ? "تأیید شده" : "نیازمند تکمیل یا تأیید"}
+                          </Badge>
+                        </span>
+                        <span className="mt-1 block text-muted-foreground">
+                          {location.address ?? "آدرس ثبت نشده"}
+                        </span>
+                        <span className="mt-1 block text-muted-foreground" dir="ltr">
+                          {location.phone ?? "تلفن ثبت نشده"}
+                        </span>
+                      </span>
+                    </label>
+                  );
+                })}
+              </RadioGroup>
+              {deliveryLocations.length === 0 && (
+                <p className="text-destructive">
+                  برای ثبت سفارش ابتدا یک لوکیشن کسب‌وکار ثبت کنید.
                 </p>
               )}
-            </div>
+              {!selectedLocation && deliveryLocations.length > 0 && (
+                <p className="text-muted-foreground">
+                  لوکیشن دریافت را پیش از ثبت سفارش انتخاب کنید.
+                </p>
+              )}
+            </fieldset>
             <div className="space-y-2">
               <Label htmlFor="note">توضیحات سفارش (اختیاری)</Label>
               <Textarea
@@ -230,12 +287,7 @@ function CheckoutPage() {
             type="submit"
             form="checkout-form"
             className="w-full"
-            disabled={
-              checkout.isPending ||
-              !organization.phone_verified ||
-              !organization.address ||
-              !organization.phone
-            }
+            disabled={checkout.isPending || !deliveryOrganizationId || !isSelectedLocationReady}
           >
             {checkout.isPending ? "در حال ثبت سفارش…" : "ثبت نهایی سفارش"}
           </Button>
